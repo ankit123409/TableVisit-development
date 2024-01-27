@@ -1,0 +1,83 @@
+{
+  "name": "tablevisit",
+  "displayName": "Table Visit",
+  "expo": {
+    "name": "Table Visit",
+    "slug": "tablevisit",
+    "version": "1.1.6",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "privacy": "unlisted",
+    "platforms": ["ios", "android"],
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1b1b22"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.app.tablevisit",
+      "infoPlist": {
+        "CFBundleShortVersionString": "1.1.6",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location",
+        "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to use your location",
+        "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location",
+        "NSPhotoLibraryUsageDescription": "Give $(PRODUCT_NAME) permission to save photos",
+        "NSCameraUsageDescription": "Give $(PRODUCT_NAME) permission to access your camera",
+        "NSMicrophoneUsageDescription": "Give $(PRODUCT_NAME) permission to use your microphone",
+        "LSApplicationQueriesSchemes": ["googlechromes", "comgooglemaps"],
+        "UIAppFonts": [
+          "AntDesign.ttf",
+          "Entypo.ttf",
+          "EvilIcons.ttf",
+          "Feather.ttf",
+          "FontAwesome.ttf",
+          "FontAwesome5_Brands.ttf",
+          "FontAwesome5_Regular.ttf",
+          "FontAwesome5_Solid.ttf",
+          "Foundation.ttf",
+          "Ionicons.ttf",
+          "MaterialIcons.ttf",
+          "MaterialCommunityIcons.ttf",
+          "SimpleLineIcons.ttf",
+          "Octicons.ttf",
+          "Zocial.ttf",
+          "Fontisto.ttf"
+        ],
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "localhost": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            },
+            "table-visit.local": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            },
+            "tablevisit.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            }
+          }
+        }
+      }
+    },
+    "android": {
+      "package": "  ",
+      "versionCode": 116
+    },
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "com.app.tablevisit",
+          "enableGooglePay": false
+        }
+      ]
+    ]
+  }
+}

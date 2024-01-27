@@ -1,0 +1,33 @@
+https://github.com/mcnamee/react-native-starter-kit
+
+https://github.com/airbnb/javascript
+
+
+https://github.com/react-native-community/react-native-template-typescript
+
+
+
+
+https://github.com/victorkvarghese/react-native-boilerplate
+
+
+
+https://github.com/robinheinze/ignite-trivia
+
+https://github.com/robinheinze/ignite-standard
+
+https://egghead.io/q/react
+
+npx ignite-cli new TableVisitApp --expo
+
+npx ignite-cli new OvtMobile --expo
+https://callstack.github.io/react-native-paper/theming.html
+
+yarn add react-native-paper
+yarn add react-native-vector-icons
+
+Edit android/app/build.gradle ( NOT android/build.gradle ) and add the following:
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
+
+org.gradle.java.home=/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home

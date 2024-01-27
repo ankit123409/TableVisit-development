@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "999164526728",
+    "project_id": "visit-app-89d93",
+    "storage_bucket": "visit-app-89d93.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999164526728:android:394cd0baf1c9d38e785f3d",
+        "android_client_info": {
+          "package_name": "com.app.tablevisit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8rsrFrTmmle7RX0RKd2OQJMVSFf19mE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

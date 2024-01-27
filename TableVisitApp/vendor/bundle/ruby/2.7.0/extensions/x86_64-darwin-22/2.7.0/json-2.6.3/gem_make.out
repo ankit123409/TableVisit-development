@@ -1,0 +1,16 @@
+current directory: /Users/apple/Navin/tablevisit/tablevisit/vendor/bundle/ruby/2.7.0/gems/json-2.6.3/ext/json
+/Users/apple/.rvm/rubies/ruby-2.7.0/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/apple/Navin/tablevisit/tablevisit/vendor/bundle/ruby/2.7.0/gems/json-2.6.3/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20230830-13728-w194t0 sitelibdir\=./.gem.20230830-13728-w194t0 clean
+
+current directory: /Users/apple/Navin/tablevisit/tablevisit/vendor/bundle/ruby/2.7.0/gems/json-2.6.3/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20230830-13728-w194t0 sitelibdir\=./.gem.20230830-13728-w194t0
+make: Nothing to be done for `all'.
+
+current directory: /Users/apple/Navin/tablevisit/tablevisit/vendor/bundle/ruby/2.7.0/gems/json-2.6.3/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20230830-13728-w194t0 sitelibdir\=./.gem.20230830-13728-w194t0 install
+
+current directory: /Users/apple/Navin/tablevisit/tablevisit/vendor/bundle/ruby/2.7.0/gems/json-2.6.3/ext/json
+make DESTDIR\= sitearchdir\=./.gem.20230830-13728-w194t0 sitelibdir\=./.gem.20230830-13728-w194t0 clean
