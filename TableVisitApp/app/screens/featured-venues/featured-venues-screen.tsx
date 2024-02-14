@@ -13,12 +13,13 @@ import { useStores } from '../../models';
 import { load, USER_LOCATION } from '../../utils/storage';
 import { List, Paragraph } from 'react-native-paper';
 
-export const FeaturedVenuesScreen = observer(function FeaturedVenuesScreen() {
+export const FeaturedVenuesScreen = (props:any)=>{
   const [loading, setLoading] = useState<boolean>(true);
   const { placeStore } = useStores();
   const { featured_by_city, near_by_cities } = placeStore;
 
   useEffect(() => {
+    console.log("props?.route?.params",props?.route?.params?.palce)
     setLoading(true);
 
     async function fetchData() {
@@ -53,7 +54,7 @@ export const FeaturedVenuesScreen = observer(function FeaturedVenuesScreen() {
         <FlatList
           style={AppStyles.flat_container}
           showsVerticalScrollIndicator={false}
-          data={near_by_cities.slice()}
+          data={[props?.route?.params?.palce]}
           renderItem={({ item, index }) => (
             <PlaceItemListCard
               onRefresh={() => {}}
@@ -69,4 +70,4 @@ export const FeaturedVenuesScreen = observer(function FeaturedVenuesScreen() {
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+};

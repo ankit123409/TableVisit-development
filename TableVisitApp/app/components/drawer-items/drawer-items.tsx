@@ -111,6 +111,7 @@ const DrawerItems = () => {
         let user_data = await load(USER_DATA);
 
         if (user_data) setUser(user_data);
+        console.log("user",user_data``)
 
         let temp_location = await load(USER_LOCATION);
 
@@ -168,7 +169,10 @@ const DrawerItems = () => {
               ]}
             >
               <Paragraph numberOfLines={1} style={AppStyles.profile_name}>
-               {user?.name?.length <= 1 ?  (user?.name.length > 1 ?  `${user.name} ${user.last_name}` : user.email) :   `${user.name} ${user.last_name}` }
+                {
+                  console.log("user",user)
+                }
+               {user?.first_name?.length <= 1 ?  (user?.first_name.length > 1 ?  `${user.first_name} ${user.last_name}` : user.email) :   `${user.first_name} ${user.last_name}` }
               </Paragraph>
               <Paragraph numberOfLines={1} style={AppStyles.profile_email}>
                 My Profile
@@ -187,7 +191,9 @@ const DrawerItems = () => {
           }}
           onPress={() => {
             setDrawerItem(20);
-            navigation.navigate('search_allow_location');
+            navigation.navigate('search_allow_location',{
+              isDash:true
+            });
             navigation.dispatch(DrawerActions.closeDrawer());
           }}
         >
@@ -221,7 +227,7 @@ const DrawerItems = () => {
                   },
                 ]}
               >
-                {location.name}
+                {location.name || "atlanta"}
               </Paragraph>
             </View>
             <Icon

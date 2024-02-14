@@ -7,6 +7,8 @@ import {
 } from './api.types';
 import { getGeneralApiProblem } from './api-problem';
 import { AUTH_TOKEN, loadString } from '../../utils/storage';
+import { API_URL, BASE_URL, DEFAULT_API_CONFIG } from './api-config';
+import { LOGIN } from './api-constant';
 
 export class AuthApi {
   private api: Api;
@@ -20,23 +22,24 @@ export class AuthApi {
       await this.api.setup();
       // make the api call
       const response: ApiResponse<any> = await this.api.apisauce.post(
-        // `http://18.235.61.119/api/sign_in`,
-        // `http://18.235.61.119/api/sign_in`,
-        `http://172.20.10.2:5050/api/login`,
-
+        // `${BASE_URL}/${LOGIN}`
+        `${API_URL}login`
+        ,
         JSON.stringify(user)
       );
+      console.log("result----->",response)
+
       // the typical ways to die when calling an api
       if (!response.ok) {
         const problem = getGeneralApiProblem(response);
         if (problem) return problem;
       }
 
-      const result = response.data;
+      const result = response.data.data;
+      console.log("result----->",result)
     
-      if (result.code === 200) {
-        const { data } = result;
-        return { kind: 'ok', data };
+      if (response.status == 200) {
+        return { kind: 'ok', data:response.data.data };
       }
 
       return { kind: 'error', message: result.message };
@@ -77,24 +80,43 @@ export class AuthApi {
   async getSignUp(user): Promise<GetSignUpResult> {
     try {
       await this.api.setup();
-      // alert("http://18.235.61.119");
-      // make the api call
-      // alert(JSON.stringify(user));
+  
       const response: ApiResponse<any> = await this.api.apisauce.post(
-        `http://18.235.61.119/api/sign_up`,
-        JSON.stringify(user)
+        `${API_URL}register`,
+        JSON.stringify(user) 
       );
-      console.log(response);
+      console.log("response",response)
       // alert(JSON.stringify(response));
       // the typical ways to die when calling an api
-      if (!response.ok) {
-        const problem = getGeneralApiProblem(response);
-        if (problem) return problem;
-      }
+      // if (!response.ok) {
+      //   const problem = getGeneralApiProblem(response);
+      //   if (problem) return problem;
+      // }
 
       const result = response.data;
+      const isRegister =response.ok;
 
-      return { kind: 'ok', result };
+      return { kind: 'ok', result,isRegister:isRegister };
+    } catch (e) {
+      __DEV__ && console.tron.log(e.message);
+      return { kind: 'bad-data' };
+    }
+  }
+
+  async getOtp(): Promise<GetSignUpResult> {
+    try {
+      await this.api.setup();
+     
+      const response: ApiResponse<any> = await this.api.apisauce.get(
+        // `http://18.235.61.119/api/sign_up`,
+        `http://192.168.2.101:5050/api/resend/otp?user_id=${1}`
+      );
+      console.log("response",response)
+ 
+      const result = response.data;
+      const isRegister =response.ok;
+
+      return { kind: 'ok', result,isRegister:isRegister };
     } catch (e) {
       __DEV__ && console.tron.log(e.message);
       return { kind: 'bad-data' };
@@ -157,27 +179,35 @@ export class AuthApi {
   }
 
   async verifyOTP(user): Promise<GetAuthResult> {
+    console.log("user",user)
     try {
       await this.api.setup();
 
       // make the api call
       const response: ApiResponse<any> = await this.api.apisauce.post(
-        `http://18.235.61.119/api/verify_otp`,
+        `${API_URL}verify-otp`,
         JSON.stringify(user)
       );
-
+console.log("response",response.data)
       // the typical ways to die when calling an api
-      if (!response.ok) {
-        const problem = getGeneralApiProblem(response);
-        if (problem) return problem;
-      }
+      // if (!response.ok) {
+      //   const problem = getGeneralApiProblem(response);
+      //   if (problem) return problem;
+      // }
+
 
       const result = response.data;
+      if(result){
+        return { kind: 'ok', data:response.data ,isverify:response.ok };
 
-      if (result.code === 200) {
-        const { data } = result;
-        return { kind: 'ok', data };
+
       }
+      // result{}
+
+      // if (result.status === 200) {
+      //   const { data } = result;
+      //   return { kind: 'ok', data };
+      // }
 
       return { kind: 'error', message: result.message };
     } catch (e) {

@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import {
   Avatar,
   Button,
@@ -33,18 +32,21 @@ import {
 import { load, SELECTED_PLACE } from '../../utils/storage';
 import { useStores } from '../../models';
 import { DialogPlaceDetail } from '../../components/dialog/dialog-place-detail';
+import { detailApi } from './datailApi';
 
-export const DetailScreen = observer(function DetailScreen() {
+export const DetailScreen = (props:any)=> {
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [markedDate, setMarkedDate] = useState({});
-  const [date, setDate] = useState(null);
+  const [date, setDate] = useState(Moment(new Date()).format("YYYY-MM-DD"));
   const [added, setAdded] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const { placeStore, favoriteStore } = useStores();
-  const { place } = placeStore;
-  const [favorite, setFavorite] = useState<boolean>(place.is_favorite);
+  // const { place } = placeStore;
+  const [place, setPlace] = useState({});
+
+  const [favorite, setFavorite] = useState<boolean>();
 
   // const place = {
   //   id: 1,
@@ -62,36 +64,107 @@ export const DetailScreen = observer(function DetailScreen() {
   // };
 
   const navigation = useNavigation();
+  // React.useEffect(()=>{
+  //   console.log("props",props.route.params)
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
+  //   async function init() {
+  //     try {
+       
+  //      let   venueDetlies = await placeStore.getFeaturedByCity(props.route.params);
+  //      console.log("venueDetlies",venueDetlies)
+       
+  //     } catch (e) {
+  //       console.warn(e);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-      const fetchData = async () => {
-        try {
-          const temp_place = await load(SELECTED_PLACE);
+  //   init().then();
 
-          if (temp_place) {
-            await placeStore.getPlace(temp_place.id);
-          }
+  // },[])
 
-          let selectedDate = await loadSelectedDate();
+  // React.useEffect(async ()=>{
+  //      let   venueDetlies = await placeStore.getVenueDetiles(props.route.params.id);
+  //   console.log("sdjcjdjd",venueDetlies)
 
-          if (!selectedDate) selectedDate = Moment().format('YYYY-MM-DD');
 
-          markDate(selectedDate);
-        } catch (e) {
-          console.warn(e);
-        } finally {
-          setLoading(false);
-        }
-      };
+  // },[])
+  // React.useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const venueDetails = await placeStore.getVenueDetiles(props.route.params.id);
+  //       console.log("Venue Details:", venueDetails);
+  //       setPlace(venueDetails.place)
+  //       // Do something with venueDetails
+  //     } catch (error) {
+  //       console.error("Error fetching venue details:", error);
+  //       // Handle error as needed
+  //     }
+  //   };
 
-      fetchData().then(async () => {});
+  //   fetchData();
+  // }, [props.route.params.id]);
 
-      return () => {};
-    }, [])
-  );
+
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setLoading(true);
+
+  //     const fetchData = async () => {
+  //       try {
+  //         const temp_place = await load(SELECTED_PLACE);
+
+  //         if (temp_place) {
+  //           await placeStore.getPlace(temp_place.id);
+  //         }
+
+  //         let selectedDate = await loadSelectedDate();
+
+  //         if (!selectedDate) selectedDate = Moment().format('YYYY-MM-DD');
+
+  //         markDate(selectedDate);
+  //       } catch (e) {
+  //         console.warn(e);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchData().then(async () => {});
+
+  //     return () => {};
+  //   }, [])
+  // );
+// const {id} =
+  React.useEffect(()=>{
+    getVenueDetail(props.route.params.id)
+  },[])
+  const getVenueDetail=(id)=>{
+
+    setLoading(true);
+    let params={
+      _path:id
+    }
+    detailApi.getVenueDetiles(params, (res: any) => {
+      if (res) {
+        // console.log("rseseses",res);
+        setPlace(res)
+
+        
+        
+      }
+    setLoading(false);
+
+  },(error:any)=>{
+   
+    setLoading(false);
+
+
+  })
+
+  }
 
   const markDate = (date) => {
     let current_date = {};
@@ -112,7 +185,7 @@ export const DetailScreen = observer(function DetailScreen() {
     } catch (e) {
       __DEV__ ? console.log(e) : null;
     } finally {
-      RootNavigation.navigate('tables');
+      RootNavigation.navigate('tables',{place:place,date:date});
       setLoading(false);
     }
   };
@@ -191,16 +264,16 @@ export const DetailScreen = observer(function DetailScreen() {
                 icon="star"
               />
               <Text style={{ color: AppColors.BLACK, marginLeft: 10 }}>
-                {place.place_rating_avg}
+                {place.venue_ratings/5}
               </Text>
             </View>
           </ImageBackground>
           <View style={styles.mainViewStyle}>
             <Text style={styles.venueOpenHoursStyle}>
               {'Hours of operations : ' +
-                place.open_at +
+                place.open_from +
                 ' to ' +
-                place.close_at}
+                place.closed_at}
             </Text>
             <View style={styles.venueWithCheckButtonContainerStyle}>
               <View>
@@ -233,7 +306,7 @@ export const DetailScreen = observer(function DetailScreen() {
                 </View>
               </View>
             </View>
-            <OptionsHorizontalListView />
+            <OptionsHorizontalListView  place={place} />
             <Text>Details</Text>
             <Text
               numberOfLines={3}
@@ -344,14 +417,16 @@ export const DetailScreen = observer(function DetailScreen() {
       />
     </>
   );
-});
+}
 
-const OptionsHorizontalListView = () => {
+const OptionsHorizontalListView = (place:any) => {
   return (
     <View style={styles.optionsHorizontalListViewStyle}>
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('book_bottles');
+          RootNavigation.navigate('book_bottles',{
+            item:place?.place?.id
+          });
           // RootNavigation.navigate("bottle_menu")
         }}
         style={AppStyles.image_container}
@@ -369,7 +444,10 @@ const OptionsHorizontalListView = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('food_menu');
+          RootNavigation.navigate('food_menu',{
+            item:place?.place?.id
+
+          });
         }}
         style={AppStyles.image_container}
       >
@@ -386,7 +464,7 @@ const OptionsHorizontalListView = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('floor_plan');
+          RootNavigation.navigate('floor_plan',{place:place});
         }}
         style={AppStyles.image_container}
       >

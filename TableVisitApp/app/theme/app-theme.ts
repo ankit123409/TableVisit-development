@@ -369,6 +369,8 @@ export const AppStyles = StyleSheet.create({
   service_rate_title: {
     fontSize: 16,
     paddingVertical: 5,
+    color: AppColors.LOGO_COLOR,
+
   },
   help_title: {
     fontFamily: "Roboto-Bold",

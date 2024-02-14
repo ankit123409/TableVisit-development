@@ -33,6 +33,9 @@ import {
   useTheme,
 } from 'react-native-paper';
 import SplashScreen from 'react-native-splash-screen';
+import { Provider } from 'react-redux';
+import {store} from "./utils/Redux/Store"
+
 
 // This puts screens in a native ViewController or Activity. If you want fully native
 // stack navigation, use `createNativeStackNavigator` in place of `createStackNavigator`:
@@ -163,8 +166,8 @@ function App() {
 
   setRootNavigation(navigationRef);
   useBackButtonHandler(navigationRef, canExit);
-  const { initialNavigationState, onNavigationStateChange } =
-    useNavigationPersistence(storage, NAVIGATION_PERSISTENCE_KEY);
+  // const { initialNavigationState, onNavigationStateChange } =
+  //   useNavigationPersistence(storage, NAVIGATION_PERSISTENCE_KEY);
   const requestUserPermission = async () => {
     await messaging().registerDeviceForRemoteMessages();
 
@@ -280,10 +283,15 @@ function App() {
   }
 
   return (
+
     <StripeProvider
-      publishableKey="pk_test_51JUvAKHc45h8j8XYLCOde9dBcDtDZbTXaqqHOamAVRjpx2Qn7Et9IzYgUtPHbYzjXjOMHFCVhprJZkRr0HU1JRuX008ToCgWsn"
+    publishableKey="pk_test_51JUvAKHc45h8j8XYLCOde9dBcDtDZbTXaqqHOamAVRjpx2Qn7Et9IzYgUtPHbYzjXjOMHFCVhprJZkRr0HU1JRuX008ToCgWsn"
+
+
+      // publishableKey="pk_live_51JUvAKHc45h8j8XYYmD3VVp9jtYPmd9d8dNs7GlHL52joBihSosipNB0DroIymcw0QPYWDKYdbbqaSjki6AvxPW800Zu2F5D58"
       // publishableKey="pk_live_51JUvAKHc45h8j8XYRXHSeqxUqEiyFAJ990r34XQe6NuktRTYZeVebZZV83s3hdK463fnbExg5eC5dWIjnUhy0dmo00UtOQKXnT"
     >
+      <Provider store={store} >
       <RootStoreProvider value={rootStore}>
         <PaperProvider theme={AppDefaultDarkTheme}>
           <SafeAreaProvider
@@ -292,8 +300,8 @@ function App() {
           >
             <RootNavigator
               ref={navigationRef}
-              initialState={initialNavigationState}
-              onStateChange={onNavigationStateChange}
+              // initialState={initialNavigationState}
+              // onStateChange={onNavigationStateChange}
             />
             {/* <RootNavigator
               ref={navigationRef}
@@ -303,6 +311,7 @@ function App() {
           </SafeAreaProvider>
         </PaperProvider>
       </RootStoreProvider>
+      </Provider>
     </StripeProvider>
   );
 }

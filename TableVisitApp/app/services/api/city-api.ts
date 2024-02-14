@@ -3,6 +3,7 @@ import {Api} from './api';
 import {GetCitiesSearchResult, GetCitiesTopResult} from './api.types';
 import {getGeneralApiProblem} from './api-problem';
 import {AUTH_TOKEN, loadString} from '../../utils/storage';
+import { API_URL } from './api-config';
 
 export class CityApi {
   private api: Api;
@@ -46,9 +47,9 @@ export class CityApi {
       const token = await loadString(AUTH_TOKEN);
 
       // make the api call
-      const response: ApiResponse<any> = await this.api.apisauce.post(
-        'http://18.235.61.119' + '/api/cities/search',
-        JSON.stringify({word: word}),
+      const response: ApiResponse<any> = await this.api.apisauce.get(
+       `${API_URL}user/venues?searchTerm=${(word)}`,
+       null,
         {
           headers: {
             Authorization: token,
@@ -63,6 +64,8 @@ export class CityApi {
       }
 
       const cities_search = response.data.data;
+      console.log("response12",cities_search)
+
 
       return {kind: 'ok', cities_search};
     } catch (e) {

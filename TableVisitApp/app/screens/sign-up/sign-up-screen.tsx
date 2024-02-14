@@ -17,6 +17,7 @@ import { useStores } from '../../models';
 import { useForm, Controller } from 'react-hook-form';
 import { emailPattern, passwordPattern } from '../../utils/app-helper';
 import { load, REGISTRATION_DATA, save, TRUE, USER_EMAIL, USER_PHONE } from '../../utils/storage';
+import { signinApi } from './signupApi';
 // import {CountryPicker} from "react-native-country-codes-picker";
 
 export const SignUpScreen = observer(function SignUpScreen() {
@@ -68,41 +69,66 @@ export const SignUpScreen = observer(function SignUpScreen() {
   }, [TRUE]);
 
   const signUpAction = async (data) => {
-    setLoading(true);
+    console.log("datata",data)
+    // setLoading(true);
 
   
 
-    const result = await authStore.getSignUp({
-      name: data.name,
-      last_name: data.last_name,
-      email: data.email,
-      password: data.password,
-      socialType: '',
-      device_key: fcmToken,
-    });
+    // const result = await authStore.getSignUp({
+    //   first_name: data.name,
+    //   last_name: data.last_name,
+    //   email: data.email,
+    //   password: data.password,
+    //   socialType: '',
+    //   device_key: fcmToken,
+    // });
+let result={
+  first_name: data.name,
+  last_name: data.last_name,
+  email: data.email,
+  password: data.password,
+  socialType: '',
+  device_key: fcmToken,
+}
+    console.log("result",result)
+    signinApi.Register(result, (res: any) => {
+      // if (res) {
+      RootNavigation.navigate('verification',{
+        email:data.email
 
-
-    if (result && result.code === 200) {
-      // alert('Congrats! You’re now registered. Please sign in.');
-      await save(USER_EMAIL, data.email);
-      await save(REGISTRATION_DATA, {
-        name: data.name,
-        last_name: data.last_name,
-        email: data.email,
-        password: data.password,
-        socialType: '',
-        device_key: fcmToken,
       });
-      RootNavigation.navigate('verification');
       setIsSuccess(true);
-    } else {
-      // alert(JSON.stringify(result));
-      if (result && result.message) setErrorMessage(result.message);
-      else setErrorMessage('An error occurred. Please try again later.');
-      setHasError(true);
-    }
-
+      // }
+  },(error:any)=>{
+    setHasError(true);
+    setErrorMessage(error?.message)
     setLoading(false);
+
+
+  })
+
+    
+    // if (result && result.isRegister) {
+    //   // alert('Congrats! You’re now registered. Please sign in.');
+    //   await save(USER_EMAIL, data.email);
+    //   await save(REGISTRATION_DATA, {
+    //     name: data.name,
+    //     last_name: data.last_name,
+    //     email: data.email,
+    //     password: data.password,
+    //     socialType: '',
+    //     device_key: fcmToken,
+    //   });
+    //   RootNavigation.navigate('verification');
+    //   setIsSuccess(true);
+    // } else {
+    //   // alert(JSON.stringify(result));
+    //   if (result && !result.isRegister) setErrorMessage(result.result.message);
+    //   else setErrorMessage('An error occurred. Please try again later.');
+    //   setHasError(true);
+    // }
+
+    // setLoading(false);
   };
 
   return (

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { DialogLoadingIndicator, Screen, ScreenBack } from '../../components';
 import { useForm, Controller } from 'react-hook-form';
 import { emailPattern } from '../../utils/app-helper';
+import { forgotpasswordApi } from './forgotPasswordApi';
 
 export const ForgotPasswordScreen = observer(function ForgotPasswordScreen() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -39,17 +40,43 @@ export const ForgotPasswordScreen = observer(function ForgotPasswordScreen() {
     return () => {};
   }, []);
 
-  const recoverPassword = async (data) => {
-    setLoading(true);
+  const recoverPassword =  (data) => {
+    // setLoading(true);
 
-    try {
-    } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
-    }
 
-    RootNavigation.navigate('sign_in');
+    const result=
+      { email: data?.email}
+    
+      forgotpasswordApi.forgotpassword(result, (res: any) => {
+      if (res) {
+        console.log("res",res)
+        
+        // alert("Verification Done Successfully");
+         RootNavigation.navigate('reset-password',{
+          data:res
+         });
+    
+      }
+  },(error:any)=>{
+      alert(error?.message);
+
+  
+    setLoading(false);
+
+
+  })
+
+
+    // setLoading(true);
+
+    // try {
+    // } catch (e) {
+    //   console.warn(e);
+    // } finally {
+    //   setLoading(false);
+    // }
+
+    // RootNavigation.navigate('sign_in');
   };
 
   return (

@@ -18,6 +18,7 @@ import { RootNavigation } from '../../navigators';
 import { load, USER_DATA } from '../../utils/storage';
 import Moment from 'moment';
 import { useStores } from '../../models';
+import { BookingStaffApi } from '../../screens/booking-staff/BookingStaffApi';
 
 const BookingStaffItemCard = ({
   booking,
@@ -30,6 +31,7 @@ const BookingStaffItemCard = ({
   assigned: boolean;
   props: any;
 }) => {
+  console.log("bookingssss",booking)
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const hideDialog = () => setShowDialog(false);
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
@@ -40,16 +42,40 @@ const BookingStaffItemCard = ({
   const goToAction = async () => {
     const user = await load(USER_DATA);
 
-    if (user) {
+    // if (user) {
       if (assigned) {
         RootNavigation.navigate('booking_staff_details', {
           data: booking,
         });
       } else setShowDialog(true);
-    }
+    // }
   };
 
   const accept = async () => {
+    // console.log("helooo")
+const params={
+  _path:booking.id
+}
+    BookingStaffApi.AcceptRequest (params, (res: any) => {
+      if (res) {
+        console.log("rseseses",res)
+     
+  
+  }
+       
+  
+  
+      
+    // setLoading(false);
+  
+  },(error:any)=>{
+   
+    // setLoading(false);
+  
+  
+  })
+
+    return
     try {
       const result = await staffBookingStore.assignBooking({
         booking_id: booking.id,
@@ -87,10 +113,10 @@ const BookingStaffItemCard = ({
             <View style={styles.column_wrap}>
               <View>
                 <Paragraph numberOfLines={1} style={AppStyles.venue_card_name}>
-                  {booking.customer_name}
+                  {booking.customer_name || "patel"}
                 </Paragraph>
                 <Paragraph numberOfLines={1} style={AppStyles.venue_list_type}>
-                  {booking.confirmation_code}
+                  {booking?.booking_confirmation_code}
                 </Paragraph>
               </View>
               <View>
@@ -105,7 +131,7 @@ const BookingStaffItemCard = ({
                   numberOfLines={1}
                   style={(AppStyles.booking_amount, styles.booking_amount)}
                 >
-                  Table: {booking.table ? booking.table.table_number : null}
+                  Table: {booking?.venue_table_info_id ? booking?.venue_table_info_id : null}
                 </Paragraph>
               </View>
             </View>

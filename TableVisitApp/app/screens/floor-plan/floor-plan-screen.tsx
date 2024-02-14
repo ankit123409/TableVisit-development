@@ -8,12 +8,13 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { load, SELECTED_PLACE } from '../../utils/storage';
 
-export const FloorPlanScreen = observer(function FloorPlanScreen() {
+export const FloorPlanScreen = observer(function FloorPlanScreen(props) {
   const [loading, setLoading] = useState<boolean>(false);
-  const [place, setPlace] = useState<any>({});
+  const [place, setPlace] = useState<any>(props?.route?.params?.place?.place);
   const navigation = useNavigation();
 
   useEffect(() => {
+    console.log("FloorPlanScreen,",props?.route?.params?.place?.floor_plan_path)
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -46,7 +47,7 @@ export const FloorPlanScreen = observer(function FloorPlanScreen() {
                 style={{ height: 500 }}
                 resizeMode={'contain'}
                 source={{
-                  uri: place.floor_plan,
+                  uri: props?.route?.params?.place?.place?.floor_plan_path || props?.route?.params?.place?.floor_plan_path,
                 }}
               />
             </View>

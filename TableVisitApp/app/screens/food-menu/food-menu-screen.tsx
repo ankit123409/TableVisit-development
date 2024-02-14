@@ -34,8 +34,13 @@ import {
   SELECTED_SERVICE_RATE,
 } from '../../utils/storage';
 import { useStores } from '../../models';
+import { ServiceApi } from '../../services/api';
+import { foodMenuApi } from './foodMenuApi';
+import { addfooddata, delfooddata } from '../../utils/Redux/Action';
+import { useDispatch, useSelector } from 'react-redux';
+import { activereservationApi } from '../active-reservation/activereservationApi';
 
-export const FoodMenuScreen = observer(function FoodMenuScreen() {
+export const FoodMenuScreen = (props:any)=> {
   const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<any>([]);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -48,58 +53,93 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const hideDialog = () => setShowDialog(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
+  const selector = useSelector((elem)=>elem)
+  console.log("selector",selector)
+  const{booking} =props?.route?.params
 
-        const temp = await load(SELECTED_PLACE);
+  const dispatch = useDispatch()
+  // const[checkid,setCheckId]=useState(selector?.food?.map((elm) => elm.id))
 
-        if (temp) {
-          await serviceStore.getRates(temp.id);
-          setData(foodRates);
-        }
+  const[checkid,setCheckId]=useState(selector?.food?.map((elm) => elm.id))
+  const[selecteItem,setsectetedItem]=useState()
 
-        const booking = await load(SELECTED_BOOKING);
-        if (booking) setSelectedBooking(booking);
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
+
+//   useEffect(() => {
+//     console.log("props",props?.route?.params?.item.place?.id)
+//     async function fetchData() {
+//       try {
+//         setLoading(true);
+
+//         const temp = await load(SELECTED_PLACE);
+//         console.log("temp",temp)
+
+
+//       // const result = await api.getFoodMenu(props?.route?.params?.item.place?.id);
+//       // console.log("result",result)
+
+//       const venueDetails = await serviceStore.getFoodMenu(props?.route?.params?.item.place?.id);
+// console.log("props?.route?.params?.item.place?.id",venueDetails.rates)
+//       //  let data =   await serviceStore.getRates(temp.id);
+//           setData(venueDetails.rates);
+
+//         const booking = await load(SELECTED_BOOKING);
+//         if (booking) setSelectedBooking(booking);
+//       } catch (e) {
+//         console.warn(e);
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchData().then();
+//   }, []);
+
+useEffect(()=>{
+  getFoodMenu(props?.route?.params?.item)
+console.log("booking",props?.route?.params?.onpress
+  
+)
+},[])
+const getFoodMenu=(id:any)=>{
+
+  setLoading(true);
+  let params={
+    _path:id
+  }
+  foodMenuApi.getFoodMenu(params, (res: any) => {
+    if (res) {
+        setData(res);  
     }
+  setLoading(false);
 
-    fetchData().then();
-  }, []);
+},(error:any)=>{
+ 
+  setLoading(false);
 
-  const request = async () => {
+
+})
+}
+
+  const request = () => {
     try {
-      const obj = {
-        table_id: selectedBooking.table_id,
-        amount: selectedServiceRate.rate,
-        tax_amount: selectedServiceRate.tax,
-        quantity: 1,
-        total_tax_amount: selectedServiceRate.tax,
-        total_amount: selectedServiceRate.total_rate,
-        service_id: selectedServiceRate.food_service_type_id,
-        booking_id: selectedBooking.id,
-        service_type: 'food',
-      };
-      console.log("req food", obj)
-      await tableSpendStore.add(obj);
 
-      // const chat_type = UserTypeEnum.Server;
-
-      // await save(SELECTED_CHAT_DATA, {
-      //   code: selectedBooking.confirmation_code + '_' + chat_type,
-      //   name:
-      //     selectedBooking.confirmation_code +
-      //     '_' +
-      //     UserTypeEnum[chat_type].replace('_', ' '),
-      //   type: chat_type,
-      //   booking_id: selectedBooking.id,
-      //   title: UserTypeEnum[chat_type].replace('_', ' '),
-      // });
+      const params={
+        _path:booking.id,
+        venue_id:booking.venue_table_info?.venue_info_id,
+        check_in:true,
+        food_orders:[selecteItem],
+      }
+      activereservationApi.updateBooking(params, (res: any) => {
+        if (res) {
+          if(props?.route?.params?.onpress){
+            props?.route?.params?.onpress()
+          }
+  }    
+      setLoading(false);
+    },(error:any)=>{
+      setLoading(false);
+    })
+      
     } catch (e) {
       console.warn(e);
     } finally {
@@ -108,11 +148,35 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
     }
   };
 
-  const showRequest = (item) => {
-    if (selectedBooking) {
-      setSelectedServiceRate(item);
+  const showRequest = (id:any) => {
+    setsectetedItem(id) 
+
+
+    if(booking){
+      console.log("helooo",booking)
       setShowDialog(true);
-    } else setShowSnackbar(true);
+return
+
+      
+    }else{
+      let checkdata = checkid?.includes(id?.id);
+
+      if (checkdata === false) {
+        let t = [...checkid];
+        t.push(id?.id);
+        setCheckId(t);
+        dispatch(addfooddata(id))
+        // dispatch(addfooddata(id))   
+  
+      } else {
+        let data = checkid?.filter((elem) => elem !== id?.id);
+        // dispatch(delfooddata(id));
+        setCheckId(data);
+      }
+     
+
+    }
+
   };
 
   const emptyComponent = () => {
@@ -151,10 +215,12 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
           }}
           ListEmptyComponent={emptyComponent}
           renderItem={({ item, index }) => {
-            console.log("name..", item)
+
+            let showIcon = checkid?.includes(item.id)
+          
             return (
               <TouchableOpacity
-                onPress={async () => {
+                onPress={() => {
                   showRequest(item);
                 }}
               >
@@ -162,11 +228,16 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
                   <View style={styles.column_wrap}>
                     <View style={styles.row_style}>
                       <Paragraph numberOfLines={1} style={[styles.title_style]}>
-                        {item.service_name}
+                        {item.name}
                       </Paragraph>
                       <Paragraph numberOfLines={1} style={[styles.price_style]}>
-                        $ {item.total_rate}
+                        $ {item.price}
                       </Paragraph>
+                      <List.Icon
+                    {...props}
+                    icon={showIcon ? "radiobox-marked" : 'radiobox-blank'}
+                  />
+
                     </View>
                   </View>
                 </View>
@@ -198,12 +269,12 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
                 <View style={AppStyles.row_wrap}>
                   <View style={[AppStyles.content_start]}>
                     <Paragraph style={[styles.order_name_style]}>
-                      {selectedServiceRate.service_name}
+                      {selecteItem?.name}
                     </Paragraph>
                   </View>
                   <View style={[AppStyles.content_end]}>
                     <Paragraph style={styles.order_price_style}>
-                      $ {selectedServiceRate.total_rate}
+                      $ {selecteItem?.price}  
                     </Paragraph>
                   </View>
                 </View>
@@ -241,7 +312,7 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
                     width: scale(70),
                   }}
                   labelStyle={AppStyles.button_label}
-                  onPress={async () => await request()}
+                  onPress={ () =>  request()}
                 >
                   Yes
                 </Button>
@@ -268,7 +339,7 @@ export const FoodMenuScreen = observer(function FoodMenuScreen() {
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+}
 
 const styles = StyleSheet.create({
   venue_list_container: {

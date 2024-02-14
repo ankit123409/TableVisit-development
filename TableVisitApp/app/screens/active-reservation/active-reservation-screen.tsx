@@ -1,4 +1,16 @@
-import { observer } from 'mobx-react-lite';
+import { useNavigation } from '@react-navigation/native';
+import Moment from 'moment';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
+import {
+  GestureResponderEvent,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   Avatar,
   Divider,
@@ -10,7 +22,15 @@ import {
   Portal,
   Snackbar,
 } from 'react-native-paper';
-import * as React from 'react';
+import StarRating from 'react-native-star-rating-widget';
+import {
+  Button,
+  DialogLoadingIndicator,
+  ScreenBack,
+  Text
+} from '../../components';
+import { useStores } from '../../models';
+import { RootNavigation } from '../../navigators';
 import {
   AppColors,
   AppStyles,
@@ -18,132 +38,192 @@ import {
   scale,
   verticalScale,
 } from '../../theme';
-import {
-  Button,
-  DetailHeader,
-  DialogLoadingIndicator,
-  Screen,
-  ScreenBack,
-  Text,
-} from '../../components';
-import { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import {
-  load,
-  save,
-  SELECTED_BOOKING,
-  SELECTED_CHAT_DATA,
-  SELECTED_PLACE,
-  USER_DATA,
-} from '../../utils/storage';
-import { useStores } from '../../models';
-import {
-  GestureResponderEvent,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Moment from 'moment';
-import { PolicyTypeEnum, UserTypeEnum } from '../../utils/app-enums';
+import { UserTypeEnum } from '../../utils/app-enums';
 import { currencyFormat, onShare } from '../../utils/app-helper';
-import StarRating from 'react-native-star-rating-widget';
-import { RootNavigation } from '../../navigators';
-import { UNAUTHORIZED_API } from '../../services/api/api-problem';
+import {
+  SELECTED_CHAT_DATA,
+  save
+} from '../../utils/storage';
+import { confirmApi } from '../confirm/confirmApi';
+import { activereservationApi } from './activereservationApi';
 
-export const ActiveReservationScreen = observer(
-  function ActiveReservationScreen() {
+export const ActiveReservationScreen = (props:any) =>
+   {
     const [loading, setLoading] = useState<boolean>(false);
     const [modalVisible, setModalVisible] = React.useState(false);
     const showModal = () => setModalVisible(true);
     const hideModal = () => setModalVisible(false);
 
-    const [booking, setBooking] = useState<any>({});
+    const [booking, setBooking] = useState();
     const navigation = useNavigation();
     const [user, setUser] = useState<any>({});
     const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const { placeStore, policyStore, tableStore, favoriteStore } = useStores();
+   const[place,setPlace]=useState()
+   const[table,setTable]=useState()
+   const[total,setTotal]=useState()
 
-    const { place } = placeStore;
-    const { policy } = policyStore;
-    const { table } = tableStore;
 
-    const [favorite, setFavorite] = useState<boolean>(place.is_favorite);
 
-    useEffect(() => {
-      setLoading(true);
 
-      const fetchData = async () => {
-        try {
-          const temp_booking = await load(SELECTED_BOOKING);
+    useEffect(()=>{
+      getBookingDetails()
 
-          if (temp_booking) {
-            setBooking(temp_booking);
-            const result = await placeStore.getPlace(temp_booking.place_id);
+    },[])
+    const getBookingDetails=()=>{
+      setPlace(props?.route?.params?.booking?.venue_info)
+      const params={
+       _path:props?.route?.params?.booking.id
+         }
 
-            if (result === UNAUTHORIZED_API) {
-              RootNavigation.navigate('sign_out');
-            }
+      activereservationApi.getBookingDetails(params, (res: any) => {
+        if (res) {
+          setBooking(res)
 
-            await policyStore.getPolicy(
-              temp_booking.place_id,
-              PolicyTypeEnum.Cancellation
-            );
-            await tableStore.getTable(temp_booking.table_id);
+          console.log("resxxxxxxx",res)
+      getTableDetails(res?.venue_table_info)
 
-            await save(SELECTED_PLACE, place);
-          }
+      let bottletotal = res?.bottle_orders?.reduce((accumulator, elm) => accumulator + elm.price,0)
+     let foodTotal =res?.food_orders.reduce((accumulator, elm) => accumulator + elm.price,0)
+      console.log("bottletotal",bottletotal + foodTotal)
+      setTotal(bottletotal + foodTotal)
+      let total =  bottletotal + res?.venue_table_infos?.deposit_amount
+      // console.log("rseseses",res?.bottle_orders?.reduce((accumulator, elm) => accumulator + elm.price))
+// console.log("total",total);
 
-          let user_data = await load(USER_DATA);
+  }
+      setLoading(false);
+  
+    },(error:any)=>{
+     
+      setLoading(false); 
+  
+   
+    })
 
-          if (user_data) setUser(user_data);
-        } catch (e) {
-          console.warn(e);
-        } finally {
-          setLoading(false);
+    }
+    const getTableDetails=(data:any)=>{
+      confirmApi.getTableDetiles({_path:`${data.venue_info_id}/${data.id}`}, (res: any) => {
+        if (res) {
+          setTable(res)
         }
-      };
+      setLoading(false);
+    
+    },(error:any)=>{
+     
+      setLoading(false);
+    
+    
+    })
 
-      fetchData().then();
-    }, []);
+    }
 
-    console.log('bopokinf..', booking.id);
-    const sendNotification = async () => {
-      setLoading(true);
-      try {
-        const payload = {
-          booking_id: booking.id,
-        };
-        await placeStore.postCheckIn(payload);
-        setShowSnackbar(true);
-        setIsDisabled(true);
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
+
+    const perssCheck=()=>{
+
+      const params={
+        _path:props?.route?.params?.booking.id,
+        // book_id:props?.route?.params?.booking.id,
+        venue_id:place?.id,
+        check_in:true,
       }
-    };
 
-    const sendNotificationIndividual = async (id) => {
-      setLoading(true);
 
-      try {
-        const payload = {
-          booking_id: booking.id,
-          user_type: id,
-        };
-        await placeStore.postCheckIn(payload);
-        setShowSnackbar(true);
-        setIsDisabled(true);
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+      activereservationApi.updateBooking(params, (res: any) => {
+        if (res) {
+          console.log("ressssssssss",res)
+          setShowSnackbar(true);
+          //     setIsDisabled(true);
+          getBookingDetails()
+
+  
+  }
+         
+  
+  
+          // setPlace(res) 
+        // }
+      setLoading(false);
+  
+    },(error:any)=>{
+     
+      setLoading(false);
+  
+  
+    })
+
+    }
+    // useEffect(() => {
+    //   setLoading(true);
+
+    //   const fetchData = async () => {
+    //     try {
+    //       const temp_booking = await load(SELECTED_BOOKING);
+
+    //       if (temp_booking) {
+    //         setBooking(temp_booking);
+    //         const result = await placeStore.getPlace(temp_booking.place_id);
+
+    //         // if (result === UNAUTHORIZED_API) {
+    //         //   RootNavigation.navigate('sign_out');
+    //         // }
+
+    //         await policyStore.getPolicy(
+    //           temp_booking.place_id,
+    //           PolicyTypeEnum.Cancellation
+    //         );
+    //         await tableStore.getTable(temp_booking.table_id);
+
+    //         await save(SELECTED_PLACE, place);
+    //       }
+
+    //       let user_data = await load(USER_DATA);
+
+    //       if (user_data) setUser(user_data);
+    //     } catch (e) {
+    //       console.warn(e);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
+
+    //   fetchData().then();
+    // }, []);
+
+    // const sendNotification = async () => {
+    //   setLoading(true);
+    //   try {
+    //     const payload = {
+    //       booking_id: booking.id,
+    //     };
+    //     await placeStore.postCheckIn(payload);
+    //     setShowSnackbar(true);
+    //     setIsDisabled(true);
+    //   } catch (e) {
+    //     console.warn(e);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+
+    // const sendNotificationIndividual = async (id) => {
+    //   setLoading(true);
+
+    //   try {
+    //     const payload = {
+    //       booking_id: booking.id,
+    //       user_type: id,
+    //     };
+    //     await placeStore.postCheckIn(payload);
+    //     setShowSnackbar(true);
+    //     setIsDisabled(true);
+    //   } catch (e) {
+    //     console.warn(e);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
     const goToChat = async (chat_type) => {
       // console.log("goCHat",booking,chat_type);
@@ -188,7 +268,7 @@ export const ActiveReservationScreen = observer(
                 { color: '#E1D3BE', fontWeight: '500' },
               ]}
             >
-              {place.name}
+              {place?.name}
             </Text>
             <View style={styles.headerRightStyle}>
               <TouchableOpacity
@@ -198,7 +278,7 @@ export const ActiveReservationScreen = observer(
                   });
                 }}
               >
-                {favorite ? (
+                {/* {favorite ? (
                   <Avatar.Icon
                     color={AppColors.LOGO_COLOR}
                     style={[AppStyles.venue_list_action, { marginRight: 10 }]}
@@ -212,7 +292,7 @@ export const ActiveReservationScreen = observer(
                     size={30}
                     icon="heart-outline"
                   />
-                )}
+                )} */}
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={async () => {
@@ -231,7 +311,7 @@ export const ActiveReservationScreen = observer(
           <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
             <Image
               style={[styles.headerImageStyle]}
-              source={{ uri: place.image || place.image_path }}
+              source={{ uri: place?.image || place?.image_path }}
             />
 
             <View style={styles.mainViewStyle}>
@@ -249,14 +329,14 @@ export const ActiveReservationScreen = observer(
                 style={styles.djIconStyle}
                 color={AppColors.WHITE}
                 onPress={async () => {
-                  RootNavigation.navigate('request_song', { booking_id: booking.id });
+                  RootNavigation.navigate('request_song', { booking_id: booking?.id });
                 }}
               />
               <Text style={styles.venueOpenHoursStyle}>
-                {'Hours of operations : ' +
-                  place.open_at +
+                {
+                  place?.open_from +
                   ' to ' +
-                  place.close_at}
+                  place?.closed_at}
               </Text>
 
               <View style={styles.venueWithCheckButtonContainerStyle}>
@@ -274,18 +354,21 @@ export const ActiveReservationScreen = observer(
                     numberOfLines={1}
                     style={[AppStyles.title, { width: scale(200) }]}
                   >
-                    {place.name}
+                    {place?.name}
                   </Text>
                 </View>
 
                 <Button
                   style={{
-                    backgroundColor: table.is_checkedIn || isDisabled ? 'gray' : AppColors.LOGO_COLOR,
+                    backgroundColor: booking?.user_checked_in || isDisabled ? 'gray' : AppColors.LOGO_COLOR,
                   }}
                   onPress={() => {
-                    if (!table.is_checkedIn) {
-                      sendNotification();
-                    }
+                    // console.log("user_checked_in",booking)
+
+                    perssCheck()
+                    // if (!table.is_checkedIn) {
+                    //   sendNotification();
+                    // }
                   }}
                 >
                   <Text
@@ -299,28 +382,103 @@ export const ActiveReservationScreen = observer(
                 </Button>
               </View>
 
-              <OptionsHorizontalListView />
+
+              <View style={styles.optionsHorizontalListViewStyle}>
+      <TouchableOpacity
+        onPress={() => {
+          console.log("bokiiii",place)
+
+          RootNavigation.navigate('book_bottles',{
+            item:place.id,
+            booking:booking
+
+          });
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="bottle-wine-outline"
+        />
+        <Paragraph style={[AppStyles.title_center_small, { fontSize: 10 }]}>
+          Bottle Menu
+        </Paragraph>
+      </TouchableOpacity>
+      <View style={styles.optionsHorizontalItemSeparatorStyle} />
+      <TouchableOpacity
+        onPress={() => {
+          RootNavigation.navigate('food_menu',{
+            item:place.id,
+            booking:booking,
+            onpress:()=>getBookingDetails()
+
+            // booking_id:
+          });
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="bowl-mix-outline"
+        />
+        <Paragraph style={[AppStyles.title_center_small, { fontSize: 10 }]}>
+          Food Menu
+        </Paragraph>
+      </TouchableOpacity>
+      <View style={styles.optionsHorizontalItemSeparatorStyle} />
+      <TouchableOpacity
+        onPress={() => {
+          RootNavigation.navigate('floor_plan',{
+            place:place?.place
+          });
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="floor-plan"
+        />
+        <Paragraph style={[AppStyles.title_center_small, { fontSize: 10 }]}>
+          Floor Plan
+        </Paragraph>
+      </TouchableOpacity>
+    </View>
+        
+              
+
+              {/* <OptionsHorizontalListView  place={place} booking={"1"}/> */}
               <DetailsViewItem
                 leftText={'Date'}
-                rightText={Moment(booking.book_date).format('DD MMM YYYY')}
+                rightText={Moment(booking?.book_date).format('DD MMM YYYY')}
               />
+
 
               <DetailsViewItem
                 leftText={'Confirmation code'}
-                rightText={booking?.confirmation_code || ''}
+                rightText={booking?.booking_confirmation_code || ''}
               />
               <DetailsViewItem
                 leftText={'Guest List'}
                 rightText={'View'}
                 rightTextStyle={{ textDecorationLine: 'underline' }}
                 onPressRightText={() => {
-                  RootNavigation.navigate('guest_list');
+                  RootNavigation.navigate('guest_list',
+                  {
+                    booking:props?.route?.params?.booking?.id
+                  }
+                  );
                 }}
                 containerStyle={{ paddingBottom: 0 }}
               />
               <Divider style={AppStyles.booking_data_divider} />
               <DetailsViewItem
-                leftText={table.guests_count + ' Guest'}
+                leftText={table?.venue_table_infos[0]?.guest_count + ' Guest'}
                 leftTextStyle={{ color: AppColors.PRIMARY }}
               />
 
@@ -332,33 +490,34 @@ export const ActiveReservationScreen = observer(
               />
               <DetailsViewItem
                 leftText={'Guests'}
-                rightText={table.guests_count}
+                rightText={table?.venue_table_infos[0]?.guest_count}
               />
               <DetailsViewItem
                 leftText={'Minimum Spend'}
-                rightText={currencyFormat(table.minimum_spend)}
+                rightText={currencyFormat(table?.venue_table_infos[0]?.minimum_spend)}
               />
               <Divider style={AppStyles.booking_data_divider} />
 
               <Text>Payment Details</Text>
+             
               <View style={styles.paymentDetailsContainerStyle}>
                 <DetailsViewItem
                   leftText={'Amount'}
                   rightText={
-                    booking.amount ? currencyFormat(booking.amount) : 0
+                    table?.total_amount ? currencyFormat(table?.total_amount) : 0
                   }
                 />
                 <DetailsViewItem
                   leftText={'Taxes & fees'}
                   rightText={
-                    booking.tax_amount ? currencyFormat(booking.tax_amount) : 0
+                    table?.tax_and_fees ? currencyFormat(table?.tax_and_fees) : 0
                   }
                 />
                 <DetailsViewItem
                   leftText={'Gratuity'}
                   rightText={
-                    booking.gratuity_amount
-                      ? currencyFormat(booking.gratuity_amount)
+                    table?.gratuity_on_booking
+                      ? currencyFormat(booking?.gratuity_on_booking)
                       : 0
                   }
                 />
@@ -368,8 +527,8 @@ export const ActiveReservationScreen = observer(
                     <Text style={{ fontWeight: '800' }}>Booking Total</Text>
                   }
                   rightText={
-                    booking.total_amount
-                      ? currencyFormat(booking.total_amount)
+                    table?.total_amount
+                      ? currencyFormat(table?.total_amount)
                       : 0
                   }
                   rightTextStyle={{ fontSize: 16 }}
@@ -380,8 +539,8 @@ export const ActiveReservationScreen = observer(
                 <DetailsViewItem
                   leftText={'Tab Total'}
                   rightText={
-                    booking.spent_amount
-                      ? currencyFormat(booking.spent_amount)
+                    total
+                      ? currencyFormat(total)
                       : 0
                   }
                 />
@@ -399,8 +558,8 @@ export const ActiveReservationScreen = observer(
                     <Text style={{ fontWeight: '800' }}>Amount to Pay</Text>
                   }
                   rightText={
-                    booking.amount_to_pay
-                      ? currencyFormat(booking.amount_to_pay)
+                    total
+                      ? currencyFormat(total)
                       : 0
                   }
                   rightTextStyle={{ fontSize: 16 }}
@@ -435,7 +594,11 @@ export const ActiveReservationScreen = observer(
                 enableHalfStar={false}
               />
               <Button
-                onPress={() => RootNavigation.navigate('booking_payment')}
+                onPress={() => RootNavigation.navigate('booking_payment',{
+                  booking:booking,
+                  table:table,
+                  total:total
+                })}
                 style={styles.paymentButtonStyle}
               >
                 <Text
@@ -547,7 +710,7 @@ export const ActiveReservationScreen = observer(
       </>
     );
   }
-);
+
 const DetailsViewItem = ({
   leftText,
   rightText,
@@ -588,13 +751,23 @@ const DetailsViewItem = ({
     </View>
   );
 };
-const OptionsHorizontalListView = () => {
+const OptionsHorizontalListView = (place:any,booking:any) => {
+  {
+    console.log("bokkingggdgdgdgd",booking)
+    
+    }
   return (
     <View style={styles.optionsHorizontalListViewStyle}>
       <TouchableOpacity
         onPress={() => {
-          // RootNavigation.navigate('book_bottles');
-          RootNavigation.navigate('bottle_menu');
+          console.log("bokiiii",booking)
+
+          return
+          RootNavigation.navigate('book_bottles',{
+            item:place?.place?.id,
+            booking:booking
+
+          });
         }}
         style={AppStyles.image_container}
       >
@@ -611,7 +784,13 @@ const OptionsHorizontalListView = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('food_menu');
+          console.log("placacaca",)
+          RootNavigation.navigate('food_menu',{
+            item:place?.place?.id,
+            booking:booking
+
+            // booking_id:
+          });
         }}
         style={AppStyles.image_container}
       >
@@ -628,7 +807,9 @@ const OptionsHorizontalListView = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('floor_plan');
+          RootNavigation.navigate('floor_plan',{
+            place:place?.place
+          });
         }}
         style={AppStyles.image_container}
       >

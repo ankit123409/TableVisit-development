@@ -32,6 +32,7 @@ import {
   SELECTED_SERVICE_RATE,
 } from '../../utils/storage';
 import { useStores } from '../../models';
+import { useSelector } from 'react-redux';
 
 export const BottleMenuScreen = observer(function BottleMenuScreen() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,6 +48,7 @@ export const BottleMenuScreen = observer(function BottleMenuScreen() {
   const hideDialog = () => setShowDialog(false);
 
   useEffect(() => {
+
     async function fetchData() {
       try {
         setLoading(true);
@@ -70,7 +72,9 @@ export const BottleMenuScreen = observer(function BottleMenuScreen() {
     fetchData().then();
   }, []);
 
-  const request = async () => {
+  const request = async (data:any) => {
+
+
     try {
       const obj = {
         table_id: selectedBooking.table_id,
@@ -107,10 +111,10 @@ export const BottleMenuScreen = observer(function BottleMenuScreen() {
   };
 
   const showRequest = (item) => {
-    if (selectedBooking) {
-      setSelectedServiceRate(item);
-      setShowDialog(true);
-    } else setShowSnackbar(true);
+    // if (selectedBooking) {
+    //   setSelectedServiceRate(item);
+    //   setShowDialog(true);
+    // } else setShowSnackbar(true);
   };
 
   return (

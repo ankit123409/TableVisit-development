@@ -10,6 +10,7 @@ import {
 } from './api.types';
 import { getGeneralApiProblem } from './api-problem';
 import { AUTH_TOKEN, loadString } from '../../utils/storage';
+import { API_URL } from './api-config';
 
 export class PlaceApi {
   private api: Api;
@@ -54,7 +55,9 @@ export class PlaceApi {
     
       // make the api call
       const response: ApiResponse<any> = await this.api.apisauce.get(
-        'http://18.235.61.119' + '/api/places/near_by_cities',
+        // 'http://18.235.61.119' + '/api/places/near_by_cities',
+        `${API_URL}places/near_by_cities`,
+
         null,
         {
           headers: {
@@ -102,6 +105,39 @@ export class PlaceApi {
       const featured_by_city = response.data.data;
 
       return { kind: 'ok', featured_by_city };
+    } catch (e) {
+      __DEV__ && console.tron.log(e.message);
+      return { kind: 'bad-data' };
+    }
+  }
+
+  async getVenueDetiles(venue_id): Promise<GetFeaturedByCityResult> {
+    try {
+      const token = await loadString(AUTH_TOKEN);
+
+      // make the api call
+      const response: ApiResponse<any> = await this.api.apisauce.get(
+        `${API_URL}user/venue/${venue_id}`,
+        null
+        ,
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+
+      console.log("responseDetiles",response.ok)
+
+      // the typical ways to die when calling an api
+      if (!response.ok) {
+        const problem = getGeneralApiProblem(response);
+        if (problem) return problem;
+      }
+
+      const place = response.data.data;
+
+      return { kind: 'ok', place };
     } catch (e) {
       __DEV__ && console.tron.log(e.message);
       return { kind: 'bad-data' };

@@ -17,13 +17,17 @@ import { RootNavigation } from "../../navigators";
 import {
   load,
   REGISTRATION_DATA,
+  save,
+  USER_DATA,
   USER_EMAIL,
   USER_PHONE,
 } from "../../utils/storage";
 import { useStores } from "../../models";
 import { Snackbar } from "react-native-paper";
+import { VerifyOtpApi } from "./VerifiactionApi";
+import { onSignIn } from "../../utils/auth";
 
-export const Verification = observer(function Verification() {
+export const Verification = (props:any)=>{
   const api = new AuthApi();
   const [loading, setLoading] = useState<boolean>(true);
   const [otp, setOtp] = useState<string>("");
@@ -36,6 +40,7 @@ export const Verification = observer(function Verification() {
   const { authStore } = useStores();
 
   useEffect(() => {
+    console.log("props",props)
     setLoading(false);
   }, []);
 
@@ -50,38 +55,88 @@ export const Verification = observer(function Verification() {
 
   const verifyOTP = async (otp: string) => {
     setLoading(true);
-    const email = await load(USER_EMAIL);
 
-    let auth_data = { email: email, otp: otp };
-    const auth_result = await api.verifyOTP(auth_data);
-    if (auth_result.kind == "ok") {
-      alert("Verification Done Successfully");
-      RootNavigation.navigate("sign_in");
-    } else {
-      alert(auth_result?.message);
-    }
+
+    const result=
+      { email: props?.route?.params?.email, otp: otp }
+    
+    VerifyOtpApi.VerifyOtp(result, async (res: any) => {
+      if (res) {
+        onSignIn(res.token)
+        await save(USER_DATA, res.user);
+
+        alert("Verification Done Successfully");
+         RootNavigation.navigate('search_allow_location');
+    
+      }
+  },(error:any)=>{
+      alert(error?.message);
+
+  
     setLoading(false);
+
+
+  })
+
+
+
+    // const email = await load(USER_EMAIL);
+
+    // let auth_data = { email: email, otp: otp };
+    // const auth_result = await api.verifyOTP(auth_data);
+    // console.log("auth_result",auth_result)
+    // if (auth_result.kind == "ok" && auth_result.isverify) {
+    //   alert("Verification Done Successfully");
+    //   RootNavigation.navigate("sign_in");
+    // } else {
+    //   alert(auth_result?.data.message);
+    // }
+    // setLoading(false);
   };
 
-  const handleSendOtp = async () => {
-    const data = await load(REGISTRATION_DATA);
+  const handleSendOtp = () => {
 
-    const result = await authStore.getSignUp({
-      name: data.name,
-      last_name: data.last_name,
-      email: data.email,
-      password: data.password,
-      socialType: "",
-      device_key: data.device_key,
-    });
+    setLoading(true);
 
-    if (result && result.code === 200) {
-      setIsMessage({
-        message: "Otp sent successfully",
-        visible: true,
-      });
-      setSeconds(30);
-    }
+
+    const result=
+      { user_id :1 }
+    
+    VerifyOtpApi.resendOtp(result, (res: any) => {
+      if (res) {
+    setLoading(false);
+
+        console.log("res",res)
+        alert("OTP sent Successfully")
+        // onSignIn(res.token)
+        // alert("Verification Done Successfully");
+        //  RootNavigation.navigate('search_allow_location');
+    
+      }
+  },(error:any)=>{
+      // alert(error?.message);
+      setLoading(false);
+
+  
+    setLoading(false);
+
+
+  })
+    // const data = await load(USER_DATA);
+
+    // console.log("data",data)
+
+    // const result = await authStore.getResendOtp(
+    // );
+    // console.log("result",result)
+
+    // if (result && result.isRegister) {
+    //   setIsMessage({
+    //     message:result.result.message ,
+    //     visible: true,
+    //   });
+    //   setSeconds(30);
+    // }
   };
 
   return (
@@ -128,7 +183,7 @@ export const Verification = observer(function Verification() {
             }}
             selectionColor="white"
             placeholderTextColor="white"
-            pinCount={4}
+            pinCount={6}
             onCodeChanged={(code) => setOtp(code)}
             autoFocusOnLoad
             codeInputFieldStyle={{
@@ -201,5 +256,5 @@ export const Verification = observer(function Verification() {
       </Snackbar>
       <DialogLoadingIndicator visible={loading} />
     </>
-  );
-});
+  )
+      }

@@ -21,6 +21,7 @@ import {
   ScreenBack,
 } from '../../components';
 import {
+  Avatar,
   Button,
   Dialog,
   Divider,
@@ -32,26 +33,31 @@ import {
 } from 'react-native-paper';
 import { OptionsHeader } from '../../components/place/options-header';
 import { loadSelectedDate } from '../../utils/app-helper';
-import { SafeAreaView, View, StyleSheet, Text } from 'react-native';
+import { SafeAreaView, View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useStores } from '../../models';
 import { PaymentMethodEnum, PolicyTypeEnum } from '../../utils/app-enums';
 import Moment from 'moment';
 import { useStripe } from '@stripe/stripe-react-native';
 import { RootNavigation } from '../../navigators';
+import { confirmApi } from './confirmApi';
+import { useDispatch, useSelector } from 'react-redux';
+import moment from 'moment';
+import { Removealldata } from '../../utils/Redux/Action';
 
 // https://stripe.com/docs/payments/accept-a-payment?platform=react-native&ui=payment-sheet
-export const ConfirmScreen = observer(function ConfirmScreen() {
+export const ConfirmScreen = observer(function ConfirmScreen(props:any) {
   const [loading, setLoading] = useState<boolean>(false);
   const [booking, setBooking] = useState<any>({});
-
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const hideDialog = () => setShowDialog(false);
 
   const [showCloseTable, setShowCloseTable] = useState(false);
   const [date, setDate] = useState(null);
   const [place, setPlace] = useState<any>({});
-  const [table, setTable] = useState<any>({});
-
+  const [table, setTable] = useState(props?.route?.params?.item);
+const[bookingData,SetBookingData]=useState()
   const [isSpecial, setIsSpecial] = useState(false);
   const onToggleSpecial = () => setIsSpecial(!isSpecial);
 
@@ -64,183 +70,111 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const { paymentStore, bookingStore } = useStores();
   const { stripe } = paymentStore;
-
+// const {stripe}=useElem
   const [showPaymentResponse, setShowPaymentResponse] =
     useState<boolean>(false);
   const [paymentResponse, setPaymentResponse] = useState('');
   const [paymentConfirmed, setPaymentConfirmed] = useState<boolean>(false);
+  const selector = useSelector((elem)=>elem)
+  const [foodtotal,setFoodTotal]=useState(selector?.food?.reduce((accumulator, elm) => accumulator + elm.price, 0))
+  const dispatch = useDispatch()
 
-  // const fetchPaymentSheetParams = async () => {
-  //   let amount = 0
-  //   if (rate) {
-  //     console.log("rate----->", table.minimum_spend)
-  //     amount = parseFloat(table.minimum_spend / 2)
-  //   }
+let data =selector
 
-  //   await paymentStore.getStripe(amount * 100)
+useEffect(()=>{
+  getTableDetail(props?.route?.params?.item)
+},[])
+const getTableDetail=(data)=>{
+  setTable(props?.route?.params?.item)
+  setDate(props?.route?.params?.date)
 
-  //   const { paymentIntent, ephemeralKey, customer } = stripe
-
-  //   return {
-  //     paymentIntent,
-  //     ephemeralKey,
-  //     customer,
-  //     amount,
-  //   }
-  // }
-  const fetchPaymentSheetParams = async () => {
-    let amount = 0;
-    let tax = 0;
-    let total = 0;
-    if (rate) {
-      console.log('rate----->', rate);
-      amount = parseFloat(rate.total_rate);
-      tax = parseFloat(Number(rate.tax));
-      console.log('tax----->', amount);
-      total = amount;
-      // amount = parseFloat(rate.total_rate)
+  setLoading(true);
+  confirmApi.getTableDetiles({_path:`${data.venue_info_id}/${data.id}`}, (res: any) => {
+    if (res) {
+      setPlace(res) 
     }
-    console.log('total', total, rate);
-    await paymentStore.getStripe(total * 100);
+  setLoading(false);
 
-    const { paymentIntent, ephemeralKey, customer } = stripe;
+},(error:any)=>{
+ 
+  setLoading(false);
 
-    return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-      amount,
-    };
-  };
 
-  const initializePaymentSheet = async () => {
+})
+}
+  const openPaymentSheet=()=>{
+   
     setLoading(true);
-    try {
-      const { paymentIntent, ephemeralKey, customer, amount } =
-        await fetchPaymentSheetParams();
-      console.log('customer...', customer);
-      if (amount != 0) {
-        const { error } = await initPaymentSheet({
-          customerId: customer,
-          customerEphemeralKeySecret: ephemeralKey,
-          paymentIntentClientSecret: paymentIntent,
-          style: 'alwaysDark',
-          merchantDisplayName: 'Table Visit',
-        });
-
-        if (!error) {
-        }
-      }
-    } catch (e) {
-    } finally {
-      setLoading(false);
+    const params={
+      table_id:table?.id,
+      venue_id:table?.venue_info_id,
+      booking_date:moment(date).format("MM/DD/YYYY")  ,   // MM/DD/YYYY
+      food_orders:selector?.food?.map((elm) => elm.id),
+      bottle_orders:selector?.data.map((elm) => elm.id),
+      is_special_reservations:isSpecial,
+      special_reservation_description:   isSpecial ?  specialText:""
     }
-  };
 
-  const openPaymentSheet = async () => {
-    const final_rate = rate.total_rate;
-    console.log('hello', final_rate);
+    confirmApi.getClilentSecret(params,(res: any) => {
+      if (res) {
+        console.log("res",res)
+    setLoading(false);
+    SetBookingData(res)
+    // setLoading(false);
+        finalpaymentCall(res)
 
-    const { error } = await presentPaymentSheet({
-      clientSecret:
-        'sk_test_51JUvAKHc45h8j8XYdV1z8M8Tc3cA0uCQB5NvUmXF0uJ67I5yKYK9sWsYPO2WQxUioSXdf4CGkYnZ0OeSbUmQzHfO00GeLw8js1',
-      confirmPayment: true,
-    });
-
-    console.log('payment error : -=-=-> ', error);
-
-    if (error) {
-      // setPaymentResponse("Your payment has been cancelled.")
-      setPaymentResponse(`Error: ${error.code} ${error.message}`);
-      setPaymentConfirmed(false);
-      setShowPaymentResponse(true);
-    } else {
-      let book_date = await loadSelectedDate();
-
-      const book = {
-        rate: rate.rate,
-        tax: rate.tax,
-        total_rate: final_rate,
-        // gratuity: rate.gratuity,
-        date: Moment(book_date).format('YYYY-MM-DD HH:mm:ss'),
-        place_id: place.id,
-        table_id: table.id,
-        table_rate_id: rate.id,
-        special_comment: isSpecial ? specialText : null,
-      };
-      // __DEV__ && console.log(book)
-
-      const response = await bookingStore.book(book);
-      console.log('book', response);
-      if (response) {
-        const payment = {
-          booking_id: response.id,
-          amount: response.total_amount,
-          payment_method: PaymentMethodEnum.CreditCard,
-        };
-
-        await paymentStore.add(payment);
-
-        await save(SELECTED_BOOKING, response);
-
-        setBooking(response);
-
-        setPaymentConfirmed(true);
-        setShowDialog(true);
-      } else {
-        setPaymentResponse('An error occurred. Please try again later.');
-        setPaymentConfirmed(false);
-        setShowPaymentResponse(true);
       }
+
+  },(error:any)=>{
+   
+    setLoading(false);
+  })
+  }
+
+  
+
+ const finalpaymentCall=async (res:any)=>{
+if(res?.clientSecret){
+  const init = await initPaymentSheet({
+    merchantDisplayName: 'Table Visit',
+    paymentIntentClientSecret:res?.clientSecret
+    
+  })
+  await presentPaymentSheet()
+bookingConfirm(res)
+
+}
+ }
+ const bookingConfirm=(res:any)=>{
+  const params={
+    booking_id:res?.booking_id,
+    paymentIntentId:res?.paymentIntentId,
+    food_orders:selector?.food?.map((elm) => elm.id),
+    bottle_orders:selector?.data.map((elm) => elm.id),
+
+  }
+
+  setLoading(true);
+  confirmApi.AddBooking(params, (res: any) => {
+    if (res) {
+      dispatch(Removealldata)
+      setShowDialog(true)
+      console.log("res",res)
+      // setPlace(res) 
     }
-  };
+  setLoading(false);
 
-  useEffect(() => {
-    let date;
+},(error:any)=>{
+  setHasError(true);
+  setErrorMessage(error?.message)
+  setLoading(false);
 
-    const fetchData = async () => {
-      setLoading(true);
 
-      try {
-        date = await loadSelectedDate();
+})
+  
 
-        if (date) date = Moment(date).format('MM-DD-YYYY');
-
-        let temp_place = await load(SELECTED_PLACE);
-
-        if (temp_place) {
-          setPlace(temp_place);
-          await policyStore.getPolicy(
-            temp_place.id,
-            PolicyTypeEnum.Cancellation
-          );
-        }
-
-        let temp_table = await load(SELECTED_TABLE);
-        if ('id' in temp_table) {
-          setTable(temp_table);
-          console.log('Called..', temp_table.id, date);
-          await tableStore.getRate(temp_table.id, date);
-          initializePaymentSheet().then();
-        }
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData().then(async () => {
-      if (date) setDate(date);
-    });
-  }, []);
-
-  useEffect(() => {
-    if ('id' in table) {
-      console.log('tabel : ', table);
-      initializePaymentSheet().then();
-    }
-  }, [table, rate]);
+ }
+  
 
   return (
     <>
@@ -259,7 +193,81 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
             marginHorizontal: scale(15),
           }}
         >
-          <OptionsHeader />
+<View style={styles.optionsHorizontalListViewStyle}>
+      <TouchableOpacity
+        onPress={() => {
+          RootNavigation.navigate('book_bottles',{
+            item:table?.venue_info_id
+
+          });
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="bottle-wine-outline"
+        />
+        <Paragraph
+          style={[
+            AppStyles.title_center_small,
+            { fontSize: moderateScale(10) },
+          ]}
+        >
+          Bottle Menu
+        </Paragraph>
+      </TouchableOpacity>
+      <View style={styles.optionsHorizontalItemSeparatorStyle} />
+      <TouchableOpacity
+        onPress={() => {
+          RootNavigation.navigate('food_menu',{
+            item:table?.venue_info_id
+          });
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="bowl-mix-outline"
+        />
+        <Paragraph
+          style={[
+            AppStyles.title_center_small,
+            { fontSize: moderateScale(10) },
+          ]}
+        >
+          Food Menu
+        </Paragraph>
+      </TouchableOpacity>
+      <View style={styles.optionsHorizontalItemSeparatorStyle} />
+      <TouchableOpacity
+        onPress={() => {
+          RootNavigation.navigate('floor_plan',{place:place});
+
+        }}
+        style={AppStyles.image_container}
+      >
+        <Avatar.Icon
+          style={AppStyles.venue_detail_link}
+          color={AppColors.STAR}
+          size={48}
+          icon="floor-plan"
+        />
+        <Paragraph
+          style={[
+            AppStyles.title_center_small,
+            { fontSize: moderateScale(10) },
+          ]}
+        >
+          Floor Plan
+        </Paragraph>
+      </TouchableOpacity>
+    </View>
+
+          {/* <OptionsHeader place={place}  /> */}
         </View>
         <View
           style={{
@@ -269,7 +277,7 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
           <Paragraph style={styles.table_detail_main}>
             Table Information
           </Paragraph>
-          <Paragraph style={styles.table_detail_title}>{table.name}</Paragraph>
+          <Paragraph style={styles.table_detail_title}>{table?.table_name}</Paragraph>
           <View>
             <View
               style={{
@@ -280,7 +288,7 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
             >
               <Paragraph style={styles.table_detail_title}>Guests</Paragraph>
               <Paragraph style={styles.table_detail_row}>
-                {table.guests_count}
+                {table.guest_count}
               </Paragraph>
             </View>
             <View
@@ -364,7 +372,37 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
                   { color: AppColors.LOGO_COLOR },
                 ]}
               >
-                $ {rate.rate ? rate.rate : 0}
+                $ {table.deposit_amount ? table.deposit_amount  : 0}
+              </Paragraph>
+            </View>
+            <View style={AppStyles.content_start}>
+              <Paragraph style={AppStyles.table_detail_row_medium}>
+                Bottle
+              </Paragraph>
+            </View>
+            <View style={AppStyles.content_end}>
+              <Paragraph
+                style={[
+                  AppStyles.table_detail_row_medium,
+                  { color: AppColors.LOGO_COLOR },
+                ]}
+              >
+                $ {selector?.data?.reduce((accumulator, elm) => accumulator + elm.price, 0)}
+              </Paragraph>
+            </View>
+            <View style={AppStyles.content_start}>
+              <Paragraph style={AppStyles.table_detail_row_medium}>
+                Food
+              </Paragraph>
+            </View>
+            <View style={AppStyles.content_end}>
+              <Paragraph
+                style={[
+                  AppStyles.table_detail_row_medium,
+                  { color: AppColors.LOGO_COLOR },
+                ]}
+              >
+                $ {selector?.food?.reduce((accumulator, elm) => accumulator + elm.price, 0)}
               </Paragraph>
             </View>
           </View>
@@ -413,7 +451,10 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
                   { color: AppColors.LOGO_COLOR },
                 ]}
               >
-                $ {rate.total_rate ? rate.total_rate : 0}
+
+
+                {/* $ {selector?.food?.reduce((accumulator, elm) => accumulator + elm.price, 0)} */}
+                $ { selector?.food?.reduce((accumulator, elm) => accumulator + elm.price, 0) + selector?.data?.reduce((accumulator, elm) => accumulator + elm.price, 0) + table.deposit_amount  }
               </Paragraph>
             </View>
           </View>
@@ -449,7 +490,7 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
           </Paragraph>
         </View>
 
-        {/* <List.Section>
+        {/* <List.Section>EF
           <Button
             mode="contained"
             dark={true}
@@ -549,7 +590,12 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
               labelStyle={AppStyles.button_label}
               onPress={async () => {
                 hideDialog();
-                RootNavigation.navigate('book_bottles');
+                RootNavigation.navigate('book_bottles',{
+            item:table?.venue_info_id,
+            booking:bookingData,
+            isfromConfrim:true
+
+                });
               }}
             >
               Yes
@@ -653,8 +699,27 @@ export const ConfirmScreen = observer(function ConfirmScreen() {
             {paymentResponse}
           </Text>
         </Snackbar>
+
+
+
+        <Snackbar
+        wrapperStyle={AppStyles.snackbar_wrapper}
+        style={AppStyles.snackbar_content}
+        visible={hasError}
+        onDismiss={() => setHasError(false)}
+        action={{
+          label: 'OK',
+          onPress: () => {},
+        }}
+        duration={Snackbar.DURATION_MEDIUM}
+      >
+        <Text style={{ color: AppColors.BLACK, fontFamily: 'Roboto-Regular' }}>
+          {errorMessage}
+        </Text>
+      </Snackbar>
       </Portal>
       <DialogLoadingIndicator visible={loading} />
+
     </>
   );
 });
@@ -699,5 +764,18 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderColor: AppColors.DIVIDER_GRAY,
     marginVertical: verticalScale(5),
+  },
+  optionsHorizontalListViewStyle: {
+    borderColor: '#3A3A3F',
+    borderWidth: 2,
+    backgroundColor: AppColors.VENUE_CARD,
+    flexDirection: 'row',
+    // paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  optionsHorizontalItemSeparatorStyle: {
+    height: '100%',
+    width: 2,
+    backgroundColor: '#3A3A3F',
   },
 });

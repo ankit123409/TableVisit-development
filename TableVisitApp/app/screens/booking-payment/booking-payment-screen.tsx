@@ -27,8 +27,9 @@ import { currencyFormat } from '../../utils/app-helper';
 import { useStripe } from '@stripe/stripe-react-native';
 import { PaymentMethodEnum } from '../../utils/app-enums';
 import { RootNavigation } from '../../navigators';
+import { bookingPaymentApi } from './bookingPaymentApi';
 
-export const BookingPaymentScreen = observer(function BookingPaymentScreen(props) {
+export const BookingPaymentScreen = (props:any)=> {
   const [loading, setLoading] = useState<boolean>(false);
   const [booking, setBooking] = useState<any>({});
   const [tableSpends, setTableSpends] = useState<any>([]);
@@ -41,102 +42,139 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
 
   const { tableSpendStore, paymentStore } = useStores();
   const { table_spends, close_request } = tableSpendStore;
-
+const[table,SetTable]=useState()
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const[total,setTotle]=useState()
   const { stripe } = paymentStore;
+  useEffect(()=>{
+    console.log("props",props?.route?.params?.table)
+    setBooking(props?.route?.params?.booking)
+    SetTable(props?.route?.params?.table)
+    setTotle(props?.route?.params?.total)
+  },[])
 
-  const fetchPaymentSheetParams = async (current: any) => {
-    let amount = 0;
+  // const fetchPaymentSheetParams = async (current: any) => {
+  //   let amount = 0;
 
-    if (current) {
-      amount = parseFloat(current.amount_to_pay);
-    }
+  //   if (current) {
+  //     amount = parseFloat(current.amount_to_pay);
+  //   }
 
-    await paymentStore.getStripe(amount * 100);
+  //   await paymentStore.getStripe(amount * 100);
 
-    const { paymentIntent, ephemeralKey, customer } = stripe;
+  //   const { paymentIntent, ephemeralKey, customer } = stripe;
 
-    return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-      amount,
-    };
-  };
+  //   return {
+  //     paymentIntent,
+  //     ephemeralKey,
+  //     customer,
+  //     amount,
+  //   };
+  // };
 
-  const initializePaymentSheet = async (current: any) => {
-    setLoading(true);
+  // const initializePaymentSheet = async (current: any) => {
+  //   setLoading(true);
 
-    try {
-      const { paymentIntent, ephemeralKey, customer, amount } =
-        await fetchPaymentSheetParams(current);
-      console.log('paymentIntent', paymentIntent, ephemeralKey);
-      if (amount != 0) {
-        const { error } = await initPaymentSheet({
-          customerId: customer,
-          customerEphemeralKeySecret: ephemeralKey,
-          paymentIntentClientSecret: paymentIntent,
-          style: 'alwaysDark',
-          merchantDisplayName: 'Table Visit',
-        });
+  //   try {
+  //     const { paymentIntent, ephemeralKey, customer, amount } =
+  //       await fetchPaymentSheetParams(current);
+  //     console.log('paymentIntent', paymentIntent, ephemeralKey);
+  //     if (amount != 0) {
+  //       const { error } = await initPaymentSheet({
+  //         customerId: customer,
+  //         customerEphemeralKeySecret: ephemeralKey,
+  //         paymentIntentClientSecret: paymentIntent,
+  //         style: 'alwaysDark',
+  //         merchantDisplayName: 'Table Visit',
+  //       });
 
-        if (!error) {
-        }
-      }
-    } catch (e) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  //       if (!error) {
+  //       }
+  //     }
+  //   } catch (e) {
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   console.log("booking.id", booking.id)
-  const openPaymentSheet = async () => {
-    const { error } = await presentPaymentSheet({
-      confirmPayment: true,
-    });
+  // const openPaymentSheet = async () => {
+  //   const { error } = await presentPaymentSheet({
+  //     confirmPayment: true,
+  //   });
 
-    if (error) {
-      setPaymentResponse('Your payment has been cancelled.');
-      setPaymentConfirmed(false);
-      setShowPaymentResponse(true);
-    } else {
-      const payment = {
-        booking_id: booking.id,
-        amount: booking.amount_to_pay,
-        payment_method: PaymentMethodEnum.CreditCard,
-      };
+  //   if (error) {
+  //     setPaymentResponse('Your payment has been cancelled.');
+  //     setPaymentConfirmed(false);
+  //     setShowPaymentResponse(true);
+  //   } else {
+  //     const payment = {
+  //       booking_id: booking.id,
+  //       amount: booking.amount_to_pay,
+  //       payment_method: PaymentMethodEnum.CreditCard,
+  //     };
 
-      await paymentStore.add(payment);
+  //     await paymentStore.add(payment);
 
-      setPaymentConfirmed(true);
-      setShowDialog(true);
-    }
-  };
+  //     setPaymentConfirmed(true);
+  //     setShowDialog(true);
+  //   }
+  // };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       setLoading(true);
 
-        const temp_booking = await load(SELECTED_BOOKING);
+  //       const temp_booking = await load(SELECTED_BOOKING);
 
-        if (temp_booking) {
-          setBooking(temp_booking);
-          await tableSpendStore.getTableSpends({ booking_id: temp_booking.id });
-          await initializePaymentSheet(temp_booking);
-        }
+  //       if (temp_booking) {
+  //         setBooking(temp_booking);
+  //         await tableSpendStore.getTableSpends({ booking_id: temp_booking.id });
+  //         await initializePaymentSheet(temp_booking);
+  //       }
 
-        if (table_spends) setTableSpends(table_spends);
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    }
+  //       if (table_spends) setTableSpends(table_spends);
+  //     } catch (e) {
+  //       console.warn(e);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-    fetchData().then();
-  }, []);
+  //   fetchData().then();
+  // }, []);
+const closeTable=()=>{
+  console.log("bjbj",booking);
+  
+  const params={
+    booking_id:booking.id,
+    venue_id:booking?.venue_info_id,
+    table_id:booking.venue_table_info_id
+  }
 
+  bookingPaymentApi.closeTable (params, (res: any) => {
+    if (res) {
+   
+      RootNavigation.navigate('bottomNav')
+
+}
+     
+
+
+      // setPlace(res) 
+    // }
+  setLoading(false);
+
+},(error:any)=>{
+ 
+  setLoading(false);
+
+
+})
+
+
+}
   const emptyComponent = () => {
     return (
       <List.Section>
@@ -179,10 +217,13 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
               leftText={'Status'}
               rightText={booking.paid ? 'Paid' : 'Outstanding'}
             />
+            {
+              console.log("datatata",table?.total_amount)
+            }
             <DetailsViewItem
               leftText={'Booking Total'}
               rightText={
-                booking.total_amount ? currencyFormat(booking.total_amount) : 0
+                table?.total_amount ? currencyFormat(table?.total_amount) : 0
               }
             />
             <Text style={{ marginBottom: 10 }}>Payment Details</Text>
@@ -190,8 +231,8 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
               <DetailsViewItem
                 leftText={'Table Cost'}
                 rightText={
-                  booking.spent_amount
-                    ? currencyFormat(booking.spent_amount)
+                  total
+                    ? currencyFormat(total)
                     : 0
                 }
               />
@@ -210,8 +251,8 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
                   <Text style={{ fontWeight: '800' }}>Amount to pay</Text>
                 }
                 rightText={
-                  booking.amount_to_pay
-                    ? currencyFormat(booking.amount_to_pay)
+                  total
+                    ? currencyFormat(total)
                     : 0
                 }
                 rightTextStyle={{ fontSize: 16 }}
@@ -223,16 +264,37 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
               scrollEnabled={false}
               style={{ marginBottom: 25 }}
               showsVerticalScrollIndicator={false}
-              data={[...tableSpends]}
+              data={booking.food_orders}
               keyExtractor={(item) => String(item.id)}
               ItemSeparatorComponent={() => {
                 return <Divider style={AppStyles.items_divider} />;
               }}
               renderItem={({ item, index }) => {
                 return (
+                
                   <DetailsViewItem
-                    leftText={item.service_name}
-                    rightText={`$ ${item.total_amount}`}
+                    leftText={item?.name}
+                    rightText={`$ ${item.price}`}
+                  />
+                );
+              }}
+              ListEmptyComponent={emptyComponent}
+            />
+            <FlatList
+              scrollEnabled={false}
+              style={{ marginBottom: 25 }}
+              showsVerticalScrollIndicator={false}
+              data={booking.bottle_orders}
+              keyExtractor={(item) => String(item.id)}
+              ItemSeparatorComponent={() => {
+                return <Divider style={AppStyles.items_divider} />;
+              }}
+              renderItem={({ item, index }) => {
+                return (
+                
+                  <DetailsViewItem
+                    leftText={item?.name}
+                    rightText={`$ ${item.price}`}
                   />
                 );
               }}
@@ -328,9 +390,10 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
                 }}
                   labelStyle={AppStyles.button_label}
                   onPress={async() => {
-                    await tableSpendStore.closeTable({ booking_id: booking.id });
-                    hideDialog();
-                   props.navigation.goBack()
+                    closeTable()
+                  //   await tableSpendStore.closeTable({ booking_id: booking.id });
+                  //   hideDialog();
+                  //  props.navigation.goBack()
                   }}
                 >
                   Close
@@ -363,7 +426,7 @@ export const BookingPaymentScreen = observer(function BookingPaymentScreen(props
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+};
 const DetailsViewItem = ({
   leftText,
   rightText,

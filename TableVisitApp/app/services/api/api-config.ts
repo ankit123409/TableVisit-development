@@ -8,11 +8,13 @@
 // const STORAGE_URL = "http://table-visit.southcentralus.cloudapp.azure.com"
 
 // @ts-ignore
-import {API_URL, STORAGE_URL} from "@env"
+// import {API_URL, STORAGE_URL} from "@env"
 
 /**
  * The options used to configure the API.
  */
+export const API_URL="P"  
+export const STORAGE_URL="";
 export interface ApiConfig {
     /**
      * The URL of the api.
@@ -38,3 +40,5 @@ export const DEFAULT_API_CONFIG: ApiConfig = {
     storage: STORAGE_URL || "",
     timeout: 100000,
 }
+ 
+

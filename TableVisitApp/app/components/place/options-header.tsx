@@ -4,13 +4,16 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors, AppStyles, moderateScale } from '../../theme';
 import { RootNavigation } from '../../navigators';
 
-export const OptionsHeader = () => {
+export const OptionsHeader = (props:any) => {
+  const[id,setId]=React.useState(props?.place)
+  console.log("props",props?.place?.id)
   return (
     <View style={styles.optionsHorizontalListViewStyle}>
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('book_bottles');
-          // RootNavigation.navigate("bottle_menu")
+          RootNavigation.navigate('book_bottles',{
+            item:props?.place?.id
+          });
         }}
         style={AppStyles.image_container}
       >
@@ -32,7 +35,10 @@ export const OptionsHeader = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('food_menu');
+          RootNavigation.navigate('food_menu',{
+            item:props?.place?.id
+
+          });
         }}
         style={AppStyles.image_container}
       >
@@ -54,7 +60,8 @@ export const OptionsHeader = () => {
       <View style={styles.optionsHorizontalItemSeparatorStyle} />
       <TouchableOpacity
         onPress={() => {
-          RootNavigation.navigate('floor_plan');
+          RootNavigation.navigate('floor_plan',{place:props});
+
         }}
         style={AppStyles.image_container}
       >

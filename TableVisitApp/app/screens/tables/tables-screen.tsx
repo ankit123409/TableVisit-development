@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import * as React from 'react';
 import {
   AppColors,
@@ -35,61 +34,104 @@ import { RootNavigation } from '../../navigators';
 import { PolicyTypeEnum } from '../../utils/app-enums';
 import Moment from 'moment';
 import Icon from 'react-native-paper/src/components/Icon';
+import { tableApi } from './tablesApi';
 
-export const TablesScreen = observer(function TablesScreen(props) {
+export const TablesScreen = (props)=> {
   const [loading, setLoading] = useState<boolean>(false);
   const [date, setDate] = useState(null);
-  const [place, setPlace] = useState<any>({});
+  const [place, setPlace] = useState(props?.route?.params?.place);
+  const [venue, setVenue] = useState<any>({});
+
   const [data, setData] = useState<any>([]);
   const { tableStore, policyStore } = useStores();
   const { tables } = tableStore;
   const { policy } = policyStore;
 
-  useFocusEffect(
-    useCallback(() => {
-      let date;
+  // useFocusEffect(
+    
+  //   useCallback(() => {
+  //     console.log("place",place)
+  //     setVenue(props?.route?.params?.place)
+  //     let date;
 
-      const fetchData = async () => {
-        setLoading(true);
+  //     const fetchData = async () => {
+  //       setLoading(true);
 
-        try {
-          date = await loadSelectedDate();
-          let temp_place = await load(SELECTED_PLACE);
+  //       try {
+  //         date = await loadSelectedDate();
+  //         let temp_place = await load(SELECTED_PLACE);
 
-          if (temp_place) {
-            setPlace(temp_place);
-            const result = await tableStore.getTablesWithDate(
-              temp_place.id,
-              date
-            );
+  //         if (temp_place) {
+  //           setPlace(temp_place);
+  //           const result = await tableStore.getTablesWithDate(
+  //             temp_place.id,
+  //             date
+  //           );
 
-            if (result === 'unauthorized') {
-              RootNavigation.navigate('sign_out');
-            }
+  //           // if (result === 'unauthorized') {
+  //           //   RootNavigation.navigate('sign_out');
+  //           // }
 
-            await policyStore.getPolicy(
-              temp_place.id,
-              PolicyTypeEnum.Reservation
-            );
-          }
-        } catch (e) {
-          console.warn(e);
-        } finally {
-          setLoading(false);
-        }
-      };
+  //           await policyStore.getPolicy(
+  //             temp_place.id,
+  //             PolicyTypeEnum.Reservation
+  //           );
+  //         }
+  //       } catch (e) {
+  //         console.warn(e);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
 
-      fetchData().then(async () => {
-        if (date) {
-          date = Moment(date).format('MM-DD-YYYY');
-          setDate(date);
-        }
+  //     fetchData().then(async () => {
+  //       if (date) {
+  //         date = Moment(date).format('MM-DD-YYYY');
+  //         setDate(date);
+  //       }
 
-        setData(tables);
-      });
-    }, [])
-  );
+  //       setData(tables);
+  //     });
+  //   }, [])
+  // );
+  // let table=[{
+  //   venue_info_id: 3,
+  //   table_name: 'Table 3',
+  //   table_type: 'Rectangle',
+  //   guest_count: 8,
+  //   minimum_spend: 200,
+  //   deposit_amount: 30,
+  //   is_booked: false,}]
 
+  React.useEffect(()=>{
+    getTable(props.route?.params?.place?.id)
+    setDate(props.route?.params?.date)
+  },[])
+  const getTable=(id:any)=>{
+    setLoading(true);
+  let params={
+    _path:id
+  }
+  tableApi.getTablesWithDate(params, (res: any) => {
+    if (res) {
+        setData(res);
+
+      // setPlace(res)
+
+      
+      
+    }
+  setLoading(false);
+
+},(error:any)=>{
+ 
+  setLoading(false);
+
+
+})
+
+
+  }
   const headerComponent = () => {
     return (
       <>
@@ -101,7 +143,7 @@ export const TablesScreen = observer(function TablesScreen(props) {
             marginHorizontal: scale(15),
           }}
         >
-          <OptionsHeader />
+          <OptionsHeader  place={place}/>
         </View>
         <TouchableOpacity
           onPress={() => props.navigation.navigate('reservation_policy')}
@@ -151,6 +193,7 @@ export const TablesScreen = observer(function TablesScreen(props) {
             return <Divider style={styles.items_divider} />;
           }}
           renderItem={({ item, index }) => {
+            console.log("item",item)
             return (
               <List.Item
                 right={(props) => (
@@ -160,16 +203,16 @@ export const TablesScreen = observer(function TablesScreen(props) {
                 key={index}
                 title={
                   <View style={styles.table_item_content}>
-                    <Text style={styles.table_content_name, { color: item?.is_booked ? "gray" : "white" }}>{item?.name}</Text>
+                    <Text style={styles.table_content_name, { color: item?.is_booked ? "gray" : "white" }}>{item?.table_name}</Text>
                     <Text style={styles.table_content_guest, { color: item?.is_booked ? "gray" : "white" }}>
-                      ( Guest {item?.guests_count} )
+                      ( Guest {item?.guest_count} )
                     </Text>
                   </View>
                 }
                 onPress={async () => {
                   if (!item?.is_booked) {
-                    await save(SELECTED_TABLE, item);
-                    RootNavigation.navigate('confirm');
+                    // await save(SELECTED_TABLE, item);
+                    RootNavigation.navigate('confirm',{item:item,date:date});
                   }
                 }}
               />
@@ -182,7 +225,7 @@ export const TablesScreen = observer(function TablesScreen(props) {
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+}
 
 const styles = StyleSheet.create({
   reservation_policy: {

@@ -1,4 +1,3 @@
-import { observer } from "mobx-react-lite";
 import {
   List,
   Searchbar,
@@ -16,9 +15,10 @@ import { useStores } from "../../models";
 import { DialogLoadingIndicator, ScreenBack } from "../../components";
 import { load, save, USER_LOCATION } from "../../utils/storage";
 import { ApplicationContext } from "../../navigator2/main-router";
-
-export const SearchAllowLocationScreen = observer(
-  function SearchAllowLocationScreen() {
+import { useNavigation } from '@react-navigation/native';
+import { searchAllowLocationApi } from "./search-allow-location-api";
+export const SearchAllowLocationScreen = (props:any)=> {
+    const navigation = useNavigation();
     const theme = useTheme();
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -31,22 +31,47 @@ export const SearchAllowLocationScreen = observer(
     const { changeCity } = useContext(ApplicationContext);
 
     useEffect(() => {
-      async function init() {
-        try {
-          await stateStore.getStates();
-          // await cityStore.getCitiesTop();
-          // setData(cities_top);
-          await cityStore.getCitiesSearch("Atlanta"); // temp set atlanta
-          setData(cities_search);
-        } catch (e) {
-          console.warn(e);
-        } finally {
-          setLoading(false);
-        }
-      }
+      console.log("propsddddddd",props?.route?.params?.isDash)
+      getCity()
+      // async function init() {
+      //   try {
+      //     await stateStore.getStates();
+      //     // await cityStore.getCitiesTop();
+      //     // setData(cities_top);
+      //     await cityStore.getCitiesSearch("Erie"); // temp set atlanta
+      //     console.log("cityStore",cityStore.cities_search)
+      //     setData(cityStore.cities_search);
+      //   } catch (e) {
+      //     console.warn(e);
+      //   } finally {
+      //     setLoading(false);
+      //   }
+      // }
 
-      init().then();
+      // init().then();
     }, []);
+
+    const getCity=()=>{
+      setLoading(true);
+      // searchAllowLocationApi.getCitiesSearch({ _path:`?searchTerm=${"Atlanta"}`}, (res: any) => {
+      // searchAllowLocationApi.getCitiesSearch({ _path:`?searchTerm=${"Port Aliya"}`}, (res: any) => {
+        searchAllowLocationApi.getCitiesSearch({ _path:`?searchTerm=${"Pardi"}`}, (res: any) => {
+
+        if (res) {
+          setData(res)
+          
+          
+        }
+      setLoading(false);
+
+    },(error:any)=>{
+     
+      setLoading(false);
+  
+  
+    })
+
+    }
 
     const loadState = (item: any) => {
       let state = states.find((x) => x.id === item.state_id);
@@ -70,12 +95,29 @@ export const SearchAllowLocationScreen = observer(
     };
 
     const setLocation = async (item: any) => {
+      if(props?.route?.params?.isDash){
+        RootNavigation.goBack()
+      }else{
+
+        RootNavigation.navigate("init",{
+          item:item
+        });
+
+      }
+     
+      return
+      // console.log("res",item)
+      // RootNavigation.navigate("init",{
+      //   item:item
+      // });
+      // return
+   
+
+     
       setLoading(true);
       let go_back = false;
-
       try {
         if (await load(USER_LOCATION)) go_back = true;
-        console.log("itemm", item);
         await save(USER_LOCATION, item);
 
         changeCity(item);
@@ -84,7 +126,9 @@ export const SearchAllowLocationScreen = observer(
       } finally {
         setLoading(false);
         if (go_back) RootNavigation.goBack();
-        else RootNavigation.navigate("init");
+        else RootNavigation.navigate("init",{
+          item:item
+        });
       }
     };
 
@@ -152,17 +196,18 @@ export const SearchAllowLocationScreen = observer(
 
           <FlatList
             showsVerticalScrollIndicator={false}
-            data={[...data]}
+            data={data}
             keyExtractor={(item) => String(item.id)}
             ItemSeparatorComponent={() => {
               return <View style={[{ height: 15 }]} />;
             }}
             renderItem={({ item, index }) => {
+              console.log("item",item)
               return (
                 <List.Item
-                  right={(props) => (
-                    <List.Icon {...props} icon="chevron-right" />
-                  )}
+                  // right={(props) => (
+                  //   <List.Icon {...props} icon="chevron-right" />
+                  // )}
                   style={{
                     backgroundColor: AppColors.LIGHT_BLACK,
                     marginHorizontal: 10,
@@ -170,7 +215,9 @@ export const SearchAllowLocationScreen = observer(
                   }}
                   titleStyle={AppStyles.item_title}
                   key={index}
-                  title={item.name + loadState(item)}
+                  title={item.city 
+                    + "  ,GA"
+                  }
                   onPress={async () => {
                     await setLocation(item);
                   }}
@@ -184,4 +231,3 @@ export const SearchAllowLocationScreen = observer(
       </>
     );
   }
-);

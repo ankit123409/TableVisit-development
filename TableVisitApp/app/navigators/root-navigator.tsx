@@ -26,7 +26,7 @@ import {Appbar, Button, Dialog, Paragraph, Portal} from 'react-native-paper';
 import {SignOutScreen} from '../screens/sign-out/sign-out-screen';
 import {StaffNavigator} from './staff-navigator';
 import {StaffSignInScreen} from '../screens';
-import Pusher from 'pusher-js/react-native';
+// import Pusher from 'pusher-js/react-native';
 import {View, BackHandler, Alert} from 'react-native';
 import {RootNavigation} from './navigation-utilities';
 import {
@@ -39,6 +39,8 @@ import {
 } from '../utils/storage';
 import {UserTypeEnum} from '../utils/app-enums';
 import {Verification} from '../screens/verification/verification';
+import resetpassword from '../screens/reset-password/resetpassword';
+import ResetPassword from '../screens/reset-password/reset-password';
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
  * as well as what properties (if any) they might take when navigating to them.
@@ -80,11 +82,11 @@ const ApplicationProvider = ({children}) => {
   const [messageDialog, setMessageDialog] = useState<boolean>(false);
 
   // Enable pusher logging - don't include this in production
-  Pusher.logToConsole = __DEV__;
+  // Pusher.logToConsole = __DEV__;
 
-  const pusher = new Pusher('e0960641a7317a6f4616', {
-    cluster: 'us2',
-  });
+  // const pusher = new Pusher('e0960641a7317a6f4616', {
+  //   cluster: 'us2',
+  // });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,28 +122,28 @@ const ApplicationProvider = ({children}) => {
       changeCurrentUser: (current: any) => {
         setCurrentUser(current);
       },
-      subscribePayment: (channel_name: string) => {
-        const channel = pusher.subscribe(channel_name);
+      // subscribePayment: (channel_name: string) => {
+      //   const channel = pusher.subscribe(channel_name);
 
-        channel.bind('event', async function (data) {
-          const current = JSON.parse(data.data);
-          setBooking(current);
-          await save(SELECTED_BOOKING, current);
-          setPaymentDialog(true);
-        });
-      },
-      unsubscribe: (channel_name: string) => {
-        pusher.unsubscribe(channel_name);
-      },
-      subscribeMessage: (channel_name: string) => {
-        const channel = pusher.subscribe(channel_name);
+      //   channel.bind('event', async function (data) {
+      //     const current = JSON.parse(data.data);
+      //     setBooking(current);
+      //     await save(SELECTED_BOOKING, current);
+      //     setPaymentDialog(true);
+      //   });
+      // },
+      // unsubscribe: (channel_name: string) => {
+      //   pusher.unsubscribe(channel_name);
+      // },
+      // subscribeMessage: (channel_name: string) => {
+      //   const channel = pusher.subscribe(channel_name);
 
-        channel.bind('event', async function (data) {
-          setChatData(data.data);
-          await save(SELECTED_CHAT_DATA, data.data);
-          setMessageDialog(true);
-        });
-      },
+      //   channel.bind('event', async function (data) {
+      //     setChatData(data.data);
+      //     await save(SELECTED_CHAT_DATA, data.data);
+      //     setMessageDialog(true);
+      //   });
+      // },
     }),
     [city.id, currentUser],
   );
@@ -318,6 +320,19 @@ const AuthStackNavigator = () => {
           },
           headerTintColor: 'white',
           title: 'Forgot your password?',
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="reset-password"
+        component={ResetPassword}
+        options={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: '#1b1b22',
+          },
+          headerTintColor: 'white',
+          title: 'Reset your password?',
           gestureEnabled: false,
         }}
       />

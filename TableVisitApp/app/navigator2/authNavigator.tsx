@@ -6,6 +6,7 @@ import {
   StaffSignInScreen,
 } from '../screens';
 import {Verification} from '../screens/verification/verification';
+import ResetPassword from '../screens/reset-password/reset-password';
 
 export type RootParamList = {
   loading: undefined;
@@ -43,6 +44,19 @@ function AuthNavigator() {
       <Stack.Screen
         name="forgot_password"
         component={ForgotPasswordScreen}
+        options={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: '#1b1b22',
+          },
+          headerTintColor: 'white',
+          title: 'Forgot your password?',
+          gestureEnabled: false,
+        }}
+      />
+       <Stack.Screen
+        name="reset-password"
+        component={ResetPassword}
         options={{
           headerShown: true,
           headerStyle: {

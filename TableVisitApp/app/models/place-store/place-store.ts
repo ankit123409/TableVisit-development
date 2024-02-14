@@ -78,6 +78,32 @@ export const PlaceStoreModel = types
 
       return result.kind;
     },
+    getVenueDetiles: async (venue_id) => {
+      const api = new PlaceApi(self.environment.api);
+      // console.log('city,,,', city_id);
+      const result = await api.getVenueDetiles(venue_id);
+      console.log("result12222",result)
+      if (result.kind === 'ok') {
+        return result
+        // self.saveFeaturedByCity(result.place);
+      } else {
+        __DEV__ && console.log(result.kind);
+      }
+
+      return result.kind;
+    },
+    getFood: async (venue_id) => {
+      const api = new PlaceApi(self.environment.api);
+      const result = await api.getVenueDetiles(venue_id);
+      if (result.kind === 'ok') {
+        return result
+        // self.saveFeaturedByCity(result.place);
+      } else {
+        __DEV__ && console.log(result.kind);
+      }
+
+      return result.kind;
+    },
     getFeaturedPlaces: async () => {
       const api = new PlaceApi(self.environment.api);
       const result = await api.getFeatured();

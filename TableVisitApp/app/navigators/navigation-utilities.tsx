@@ -96,21 +96,21 @@ export function useNavigationPersistence(storage: any, persistenceKey: string) {
     const [isRestoringNavigationState, setIsRestoringNavigationState] = useState(true)
 
     const routeNameRef = useRef()
-    const onNavigationStateChange = (state) => {
-        const previousRouteName = routeNameRef.current
-        const currentRouteName = getActiveRouteName(state)
+    // const onNavigationStateChange = (state) => {
+    //     const previousRouteName = routeNameRef.current
+    //     const currentRouteName = getActiveRouteName(state)
 
-        if (previousRouteName !== currentRouteName) {
-            // track screens.
-            __DEV__ && console.tron.log(currentRouteName)
-        }
+    //     if (previousRouteName !== currentRouteName) {
+    //         // track screens.
+    //         __DEV__ && console.tron.log(currentRouteName)
+    //     }
 
-        // Save the current route name for later comparision
-        routeNameRef.current = currentRouteName
+    //     // Save the current route name for later comparision
+    //     routeNameRef.current = currentRouteName
 
-        // Persist state to storage
-        storage.save(persistenceKey, state)
-    }
+    //     // Persist state to storage
+    //     storage.save(persistenceKey, state)
+    // }
 
     const restoreState = async () => {
         try {
@@ -125,5 +125,7 @@ export function useNavigationPersistence(storage: any, persistenceKey: string) {
         if (isRestoringNavigationState) restoreState().then()
     }, [isRestoringNavigationState])
 
-    return {onNavigationStateChange, restoreState, initialNavigationState}
+    return { restoreState, initialNavigationState}
+    // return {onNavigationStateChange, restoreState, initialNavigationState}
+
 }

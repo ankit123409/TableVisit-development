@@ -28,6 +28,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { emailPattern } from '../../utils/app-helper';
 import { onSignOut } from '../../utils/auth';
 import { ApplicationContext } from '../../navigator2/main-router';
+import { profileApi } from './profileApi';
+import RNFS from 'react-native-fs';
 
 export const ProfileScreen = observer(function ProfileScreen() {
   const { userStore, authStore, userProfileStore } = useStores();
@@ -56,6 +58,7 @@ export const ProfileScreen = observer(function ProfileScreen() {
   const [governmentId, setGovernmentId] = useState(null);
   const [dob, setDob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const[defualtvalue,setDefultvalue]=useState()
 
   const [dobDate, setDobDate] = useState(new Date());
   const [pickerModal, setPickerModal] = useState(false);
@@ -67,52 +70,81 @@ export const ProfileScreen = observer(function ProfileScreen() {
     setDob(Moment(date).format('MM-DD-YYYY'));
     setPickerModal(false);
   };
-
-  useEffect(() => {
-    (async () => {
-      if (Platform.OS !== 'web') {
-        const { status } =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          setSnackbarMessage(
-            'Sorry, we need camera roll permissions to make this work!'
-          );
+  useEffect(()=>{
+getProfil()
+  },[])
+  const getProfil=()=>{
+    setLoading(true);
+    profileApi.getProfile({}, (res: any) => {
+        if (res) {
+          setValue('name', res.first_name);
+                  setValue('last_name', res.last_name);
+                  setValue('email', res.email);
+                  if (user.dob) {
+                    setDobDate(new Date(Moment(user.dob).format('YYYY/MM/DD')));
+                    setDob(Moment(user.dob).format('MM-DD-YYYY'));
+                  }
+          // setValue()
+          console.log("rseseses",res);
+          
+          
         }
-      }
-    })();
+      setLoading(false);
 
-    async function fetchData() {
-      try {
-        await reloadUser();
-        if (user) {
-          setValue('name', user.name === " " ? "" : user.name, { shouldValidate: true });
-          setValue('last_name', user.last_name === " " ? "" : user.last_name, { shouldValidate: true });
-          setValue('email', user.email, { shouldValidate: true });
-          if (user.dob) {
-            setDobDate(new Date(Moment(user.dob).format('YYYY/MM/DD')));
-            setDob(Moment(user.dob).format('MM-DD-YYYY'));
-          }
-        }
+    },(error:any)=>{
+     
+      setLoading(false);
+  
+  
+    })
 
-        const result = await userProfileStore.getUserProfile();
+  }
 
-        if (result === 'unauthorized') {
-          RootNavigation.navigate('sign_out');
-        }
+  // useEffect(() => {
+  //   (async () => {
+  //     if (Platform.OS !== 'web') {
+  //       const { status } =
+  //         await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         setSnackbarMessage(
+  //           'Sorry, we need camera roll permissions to make this work!'
+  //         );
+  //       }
+  //     }
+  //   })();
 
-        if (profile) {
-          setGovernmentId(profile.government_id);
-          setApproved(profile.approve_date && profile.approve_date.length > 0);
-        }
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    }
+  //   async function fetchData() {
+  //     try {
+  //       await reloadUser();
+  //       if (user) {
+  //         setValue('name', user.name === " " ? "" : user.name, { shouldValidate: true });
+  //         setValue('last_name', user.last_name === " " ? "" : user.last_name, { shouldValidate: true });
+  //         setValue('email', user.email, { shouldValidate: true });
+  //         if (user.dob) {
+  //           setDobDate(new Date(Moment(user.dob).format('YYYY/MM/DD')));
+  //           setDob(Moment(user.dob).format('MM-DD-YYYY'));
+  //         }
+  //       }
 
-    fetchData().then();
-  }, []);
+  //       const result = await userProfileStore.getUserProfile();
+
+  //       // if (result === 'unauthorized') {
+  //       //   RootNavigation.navigate('sign_out');
+  //       // }
+
+  //       if (profile) {
+  //         setGovernmentId(profile.government_id);
+  //         setApproved(profile.approve_date && profile.approve_date.length > 0);
+  //       }
+  //     } catch (e) {
+  //       console.warn(e);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   fetchData().then();
+  // }, []);
 
   const pickAvatar = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -121,7 +153,9 @@ export const ProfileScreen = observer(function ProfileScreen() {
       aspect: [4, 4],
       quality: 0.75,
     });
-    console.log("cacelled", result.canceled)
+
+
+    console.log("cacelled", result)
     if (!result.canceled) {
       setAvatar(result);
     }
@@ -131,16 +165,75 @@ export const ProfileScreen = observer(function ProfileScreen() {
   };
 
   const saveProfile = async (data) => {
+    console.log("adscjdasbjfcds",avatar?.assets[0]?.uri)
+
+
+    const formData = new FormData();
+
+    formData.append('first_name', data.first_name);
+formData.append('last_name', data.last_name);
+formData.append('dob', Moment(new Date()).format('DD/MM/YYYY'));
+// formData.append('email', data.email);
+
+if (avatar?.assets[0]) {
+  const fileUri = avatar.assets[0].uri;
+
+  const fileData = await RNFetchBlob.fs.readFile(fileUri, 'base64')
+  // Read the file as a buffer
+ 
+  
+  // Convert the buffer to a Blob and append it to the form data
+  // const fileBlob = new Blob([fileBuffer], { type: avatar.assets[0].type });
+  // formData.append('file', fileUri, avatar.assets[0].fileName);
+}
+
+    // formData.append('first_name', data.name);
+    // formData.append('last_name', data.last_name);
+    // formData.append('dob', Moment(new Date()).format('YYYY-MM-DD'));
+    // formData.append('email', data.email);
+    // formData.append('file', {
+    //   uri: avatar?.assets[0]?.uri,
+    //   type: 'image/jpeg', // Modify the type as needed
+    //   name: avatar?.assets[0]?.fileName,
+    // });
+    // formData.append('file', 
+    // uri: file?.assets?.[0]?.uri,
+    //   type: 'image/jpeg', // Modify the type as needed
+    //   name: file?.assets?.[0]?.fileName,);
     setLoading(true);
+    
+    profileApi.editProfile(formData, (res: any) => {
+        if (res) {
+          console.log("rseseses",res);
+          getProfil()
+          
+          
+        }
+      setLoading(false);
+
+    },(error:any)=>{
+     
+      setLoading(false);
+  
+  
+    })
+    return
+
+    let params={
+      first_name: data.name,
+        last_name: data.last_name,
+        dob: Moment(new Date()).format('YYYY-MM-DD'),
+        email: data.email,
+
+    }
+    console.log("datata",params)
+
 
     try {
       let response = await userStore.update({
-        name: data.name,
-        last_name: data.last_name,
-        dob: Moment(dobDate).format('YYYY-MM-DD'),
-        email: data.email,
+        
       });
-
+return
       if (avatar) {
         response = await userStore.uploadAvatar(avatar);
 
@@ -178,25 +271,26 @@ export const ProfileScreen = observer(function ProfileScreen() {
 
   const DeleteProfile = async () => {
     setLoading(true);
-
-    try {
-      let response = await userStore.deleteAccount();
-
-      if (response.kind === 'ok') {
-        const user = await load(USER_DATA);
-
-        unsubscribe('payment.channel.' + user.id);
-        unsubscribe('message.channel.' + user.id);
-
-        onSignOut().then(() => {
-          RootNavigation.navigate('loading');
-        });
-      } else console.log(response.message);
-    } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
+    const params={
+      _path:5
     }
+    profileApi.deleteProfile(params, (res: any) => {
+      if (res) {
+        console.log("rseseses",res);
+        getProfil()
+        
+        
+      }
+    setLoading(false);
+
+  },(error:any)=>{
+   
+    setLoading(false);
+
+
+  })
+
+ 
   };
 
   const reloadUser = async () => {

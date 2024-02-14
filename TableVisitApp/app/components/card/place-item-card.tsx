@@ -21,12 +21,16 @@ export const PlaceItemCard = ({
 }) => {
   const [favorite, setFavorite] = React.useState<boolean>(place.is_favorite);
   const { favoriteStore } = useStores();
+  console.log("palce",place)
 
   return (
     <TouchableOpacity
       onPress={async () => {
         await save(SELECTED_PLACE, place);
-        RootNavigation.navigate('detail');
+        RootNavigation.navigate('detail', {
+          placeName: place?.name,
+          id:place?.id || 100
+        });
       }}
     >
       <View
@@ -39,7 +43,7 @@ export const PlaceItemCard = ({
           // defaultSource={require("../../screens/shared/venue.png")}
           style={[AppStyles.venue_card_pic, { height: 110, width: '100%' }]}
           imageStyle={{ borderRadius: 10 }}
-          source={{ uri: place.image }}
+          source={{ uri: place.image || place?.image_path }}
         >
           <View style={styles.reviewContainerStyle}>
             <Avatar.Icon
@@ -49,7 +53,7 @@ export const PlaceItemCard = ({
               icon="star"
             />
             <Text style={{ color: AppColors.BLACK, fontSize: 12 }}>
-              {place.place_rating_avg}
+              {place.venue_ratings.reduce((elem,temp)=>elem+temp,0/place.venue_ratings?.length)}
             </Text>
           </View>
         </ImageBackground>

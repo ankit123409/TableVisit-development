@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Avatar, IconButton, Paragraph } from 'react-native-paper';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
   AppColors,
   AppStyles,
@@ -22,15 +22,19 @@ export const BookingItemCard = ({
   booking: any;
   index: number;
 }) => {
-  const place = booking.place;
+  const place = booking?.venue_info;
+  console.log("booking",booking)
   const { favoriteStore } = useStores();
-  const [favorite, setFavorite] = React.useState<boolean>(place.is_favorite);
+  const [favorite, setFavorite] = React.useState<boolean>(place?.is_favorite);
   return (
     <TouchableOpacity
       onPress={async () => {
         console.log("booking", booking)
         await save(SELECTED_BOOKING, booking);
-        RootNavigation.navigate('active_reservation');
+        RootNavigation.navigate('active_reservation',
+        
+        {
+          booking:booking});
       }}
     >
       <View
@@ -41,7 +45,7 @@ export const BookingItemCard = ({
       >
         <View style={styles.header_card_style}>
           <Paragraph numberOfLines={1} style={[styles.venue_open_hours]}>
-            {'Open from ' + place.open_at + ' to ' + place.close_at}
+            {'Open from ' + place?.open_from + ' to ' + place?.closed_at}
           </Paragraph>
           <View style={AppStyles.venue_list_row}>
             <TouchableOpacity
@@ -64,7 +68,7 @@ export const BookingItemCard = ({
                 });
               }}
             >
-              {favorite ? (
+              {/* {favorite ? (
                 <Avatar.Icon
                   color={AppColors.LOGO_COLOR}
                   style={[AppStyles.venue_list_action, { marginRight: 10 }]}
@@ -78,33 +82,28 @@ export const BookingItemCard = ({
                   size={30}
                   icon="heart-outline"
                 />
-              )}
+              )} */}
             </TouchableOpacity>
           </View>
         </View>
-        <View
-          style={{
-            borderBottomColor: '#3A3A3F',
-            borderBottomWidth: 1,
-            width: '100%',
-            marginVertical: verticalScale(5),
-          }}
-        />
-        <View style={styles.venue_container}>
-          <View style={{ position: 'relative' }}>
-            <Image
-              style={[styles.venue_list_pic]}
-              source={{ uri: place.large_image_path || place.image_path }}
+      
+        <View style={{flexDirection:"row",}}>
+        <View 
+      
+        >
+        <ImageBackground
+              style={styles.venue_list_pic}
+              source={{ uri: place?.image_path || place?.image_path }}
             />
-            <View
+             <View
               style={{
                 backgroundColor: AppColors.PRIMARY,
-                position: 'absolute',
-                bottom: verticalScale(10),
+                // position: 'absolute',
+                bottom: verticalScale(24),
                 flexDirection: 'row',
                 borderTopRightRadius: scale(10),
                 borderBottomRightRadius: scale(10),
-
+width:50,
                 paddingRight: scale(10),
               }}
             >
@@ -121,11 +120,16 @@ export const BookingItemCard = ({
                   { color: AppColors.BLACK },
                 ]}
               >
-                {place.place_rating_avg}
+                {
+                place?.venue_ratings?.reduce((partialSum, a) => partialSum + a, 0)
+                
+                
+                /place?.venue_ratings?.length}
               </Paragraph>
             </View>
-          </View>
-          <View style={styles.column_wrap}>
+
+        </View>
+        <View style={{bottom:10}}>
             <Paragraph numberOfLines={1} style={AppStyles.venue_list_type}>
               {place.place_type_name}
             </Paragraph>
@@ -147,29 +151,31 @@ export const BookingItemCard = ({
                 icon={'calendar-outline'}
                 iconColor="#E1D3BE"
                 size={20}
-                style={{ margin: 0, marginLeft: -10 }}
+                style={{margin:0,marginLeft:-10 }}
               />
-              <Text numberOfLines={1} style={{ color: '#E1D3BE' }}>
-                {Moment(booking.book_date).format('DD MMM YYYY')}
+              <Text numberOfLines={1} style={{ color: "#E1D3BE" }}>
+                {/* {"22/11/99"} */}
+                {Moment(booking.booking_date).format('DD MMM YYYY')}
               </Text>
             </View>
             <Text
               numberOfLines={1}
               style={{ color: '#E1D3BE', fontWeight: '600' }}
             >
-              {booking?.confirmation_code}
+              {booking?.booking_confirmation_code}
             </Text>
             <View style={AppStyles.row_wrap}>
               <Text numberOfLines={1} style={AppStyles.venue_list_type}>
                 {booking.total_amount
                   ? currencyFormat(booking.total_amount)
                   : 0}{' '}
-                - {booking.guests_count} Guests
+                - {booking?.guests_count} Guests
               </Text>
+            </View>
             </View>
           </View>
         </View>
-      </View>
+      {/* </View> */}
     </TouchableOpacity>
   );
 };
@@ -185,15 +191,19 @@ const styles = StyleSheet.create({
   },
   venue_container: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: verticalScale(5),
+    paddingBottom:1
+    // flexWrap: 'wrap',
+    // marginBottom: verticalScale(15),
+    // position:"absolute"
   },
   venue_list_pic: {
-    borderRadius: scale(10),
+    borderRadius: scale(25),
     resizeMode: 'cover',
     width: scale(115),
-    height: verticalScale(80),
+    height: verticalScale(110),
     marginRight: scale(15),
+    padding:scale(16),
+    margin:scale(3),
     flexGrow: 1,
   },
   header_card_style: {
@@ -209,8 +219,10 @@ const styles = StyleSheet.create({
   },
   column_wrap: {
     flexDirection: 'column',
-    flex: 1,
-    justifyContent: 'center',
+    // flex: 1,
+    justifyContent:"flex-start",
+    // alignItems:"center",
+    // justifyContent: 'center',
     gap: 2,
   },
   venueOpenHoursStyle: {

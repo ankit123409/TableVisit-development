@@ -32,6 +32,7 @@ import { UserTypeEnum } from '../../utils/app-enums';
 import { AuthApi } from '../../services/api';
 import { useForm, Controller } from 'react-hook-form';
 import { emailPattern } from '../../utils/app-helper';
+import { staffSignInApi } from './staffSigninApi';
 // import messaging from '@react-native-firebase/messaging';
 
 export const StaffSignInScreen = observer(function StaffSignInScreen() {
@@ -114,8 +115,35 @@ export const StaffSignInScreen = observer(function StaffSignInScreen() {
     let auth_data = {
       email: data.email,
       password: data.password,
-      device_key: fcmToken,
+      // device_key: fcmToken,
     };
+    staffSignInApi.staffLogin(auth_data, async (res: any) => {
+      if (res) {
+
+      onSignIn(res.staff_token);
+      // await save(USER_DATA, res.user);
+      RootNavigation.navigate('staff_stack');
+    setLoading(false);
+      
+      // RootNavigation.navigate('verification',{
+      //   email:data.email
+
+      // });
+      // setIsSuccess(true);
+      }
+  },(error:any)=>{
+    setHasError(true);
+    setErrorMessage(error?.message)
+    setLoading(false);
+
+
+  })
+
+
+
+
+
+    return
 
     console.log('auth_data..', auth_data);
 

@@ -14,12 +14,13 @@ import {
   Text,
 } from "../../components";
 import { AppColors, AppStyles } from "../../theme";
-import { useCallback, useState } from "react";
+import { useCallback, useState, } from "react";
 import { SceneMap, TabView } from "react-native-tab-view";
 import { useStores } from "../../models";
 import { useFocusEffect } from "@react-navigation/native";
 import { RootNavigation } from "../../navigators";
 import { remove, SELECTED_BOOKING } from "../../utils/storage";
+import { bookingApi } from "./bookingApi";
 
 export const BookingsScreen = observer(function BookingsScreen() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -34,33 +35,66 @@ export const BookingsScreen = observer(function BookingsScreen() {
     { key: "upcoming", title: "Upcoming Bookings" },
     { key: "past", title: "Past Bookings" },
   ]);
+  React.useEffect(()=>{
+    getBooking()
 
 
-  useFocusEffect(
-    useCallback(() => {
+  },[])
+
+  const getBooking=()=>{
+
+
       setLoading(true);
-
-      const fetchData = async () => {
-        const result = await bookingStore.getBookings();
-        
-        if (result === "unauthorized") {
-          RootNavigation.navigate("sign_out");
+    
+      bookingApi.getBooking(null, (res: any) => {
+        if (res) {
+          console.log("res",res)
+          setUserBookings(res)
+            // setData(res);
+  
+          // setPlace(res)
+  
+          
+          
         }
+      setLoading(false);
+  
+    },(error:any)=>{
+     
+      setLoading(false);
+  
+  
+    })
+  
 
-        await remove(SELECTED_BOOKING);
-      };
+  }
 
-      fetchData().then(() => {
-        if (index === 0)
-          setUserBookings(bookings.filter((item) => item.is_past === false));
-        else setUserBookings(bookings.filter((item) => item.is_past === true));
 
-        setLoading(false);
-      });
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setLoading(true);
 
-      return () => {};
-    }, [index])
-  );
+  //     const fetchData = async () => {
+  //       const result = await bookingStore.getBookings();
+        
+  //       if (result === "unauthorized") {
+  //         RootNavigation.navigate("sign_out");
+  //       }
+
+  //       await remove(SELECTED_BOOKING);
+  //     };
+
+  //     fetchData().then(() => {
+  //       if (index === 0)
+  //         setUserBookings(bookings.filter((item) => item.is_past === false));
+  //       else setUserBookings(bookings.filter((item) => item.is_past === true));
+
+  //       setLoading(false);
+  //     });
+
+  //     return () => {};
+  //   }, [index])
+  // );
 
   const emptyComponent = () => {
     return (
@@ -167,3 +201,5 @@ export const BookingsScreen = observer(function BookingsScreen() {
     </>
   );
 });
+
+

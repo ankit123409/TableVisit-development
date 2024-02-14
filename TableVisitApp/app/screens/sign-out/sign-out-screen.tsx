@@ -14,25 +14,44 @@ export const SignOutScreen = observer(function SignOutScreen() {
   const { userStore } = useStores();
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const user = await load(USER_DATA);
 
-        unsubscribe('payment.channel.' + user.id);
-        unsubscribe('message.channel.' + user.id);
 
-        await userStore.logout()
-        onSignOut().then(() => {
-          RootNavigation.navigate('loading');
-        });
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        RootNavigation.navigate('sign_in');
-      }
-    }
+    console.log("sndkcnkdn")
 
-    fetchData().then();
+    try {
+  
+          
+  
+          onSignOut().then(() => {
+            RootNavigation.navigate('loading');
+          });
+        } catch (e) {
+          console.warn(e);
+        } finally {
+          RootNavigation.navigate('sign_in');
+        }
+
+        // RootNavigation.navigate('sign_in');
+
+    // async function fetchData() {
+    //   try {
+    //     const user = await load(USER_DATA);
+
+    //     unsubscribe('payment.channel.' + user.id);
+    //     unsubscribe('message.channel.' + user.id);
+
+    //     await userStore.logout()
+    //     onSignOut().then(() => {
+    //       RootNavigation.navigate('loading');
+    //     });
+    //   } catch (e) {
+    //     console.warn(e);
+    //   } finally {
+    //     RootNavigation.navigate('sign_in');
+    //   }
+    // }
+
+    // fetchData().then();
   }, []);
 
   return (

@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import { List, Searchbar, Paragraph, FAB, Snackbar } from 'react-native-paper';
 import {
   View,
@@ -28,28 +27,75 @@ import { useStores } from '../../models';
 import { load, USER_LOCATION } from '../../utils/storage';
 import { useFocusEffect } from '@react-navigation/native';
 
-export const HomeScreen = observer(function HomeScreen(props: any) {
+export const HomeScreen = (props: any) =>{
+  console.log("propsxxxxx",props.route?.params)
   const [loading, setLoading] = useState<boolean>(false);
   const [word] = useState('');
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
 
   const { placeStore } = useStores();
   const { featured_by_city, near_by_city ,near_by_cities } = placeStore;
+  const[location,setLocation]=useState()
+const staticStore={
+  accept_reservations: true, 
+  address: "3878",
+   city: "Port Aliya",
+    closed_at: "12:00 PM", 
+    country: 1, 
+    ein: "WpNzd",
+     floor_plan_path: "https://picsum.photos/seed/Jm3oCIpOb/640/480", 
+     id: 100, 
+     image_path: "https://loremflickr.com/640/480?lock=3917381877366784", 
+     "location_lat": null, 
+     "location_lng": null,
+      name: "Gorgeous Rubber Pizza",
+       open_from: "11:00 AM",
+        state: 40, 
+        venue_ratings: [1, 4, 3, 5, 4.5],
+         venue_specialties: [1, 2, 4], 
+         working_days: ["monday", "tuesday", "wednesday", "thursday"], 
+   zip: 4831
+}
+const liveStatsicStore={
+  accept_reservations: true,
+   address: "atlanta", 
+   city: "atlanta", 
+   closed_at: "12:00 PM", 
+   country: 1, 
+   ein: "1234567890",
+    floor_plan_path: null,
+     id: 2, 
+     image_path: null, 
+     location_lat: null,
+      location_lng: null,
+       name: "test bsuiness1", 
+       open_from: "12:00 AM",
+        state: 2, 
+       venue_ratings: [1,2], 
+       venue_specialties: [2, 3], working_days: ["monday", "wednesday"], 
+       zip: 380009 
 
+
+  
+
+
+}
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
         try {
           let location = await load(USER_LOCATION);
+          console.log("location",location)
+          setLocation(location)
 
           if (location) {
             // 3606
             const result = await placeStore.getNearByCity(4228);
             await placeStore.getNearByCities();
 
-            if (result === 'unauthorized') {
-              RootNavigation.navigate('sign_out');
-            }
+            // if (result === 'unauthorized') {
+            //   RootNavigation.navigate('sign_out');
+            // }
 
             await placeStore.getFeaturedByCity(location.id);
           }
@@ -66,6 +112,9 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
       return () => {};
     }, [])
   );
+  React.useEffect(()=>{
+
+  },[])
 
   const search = async () => {
     setLoading(true);
@@ -121,7 +170,10 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
                 onPress={() => {
                   // setShowSnackbar(true);
                   RootNavigation.navigate('detail', {
-                    placeName: 'Revel Atlanta',
+                    // placeName: liveStatsicStore?.name,
+                    // id:liveStatsicStore?.id || 100 ||  2
+                    place:"aa",
+                    id:101
                   });
                 }}
               >
@@ -140,7 +192,9 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
             </View>
             <View style={AppStyles.content_end}>
               <TouchableOpacity
-                onPress={() => RootNavigation.navigate('featured_venues')}
+                onPress={() => RootNavigation.navigate('featured_venues',{
+                  palce:liveStatsicStore
+                })}
               >
                 <Paragraph style={AppStyles.text_home_link}>See all</Paragraph>
               </TouchableOpacity>
@@ -152,7 +206,7 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
             horizontal
             showsHorizontalScrollIndicator={false}
             // data={ArrayData}
-            data={near_by_cities.slice()}
+            data={[liveStatsicStore]}
             renderItem={({ item, index }) => (
               <PlaceItemCard place={item} index={index} />
             )}
@@ -179,7 +233,7 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
-            data={near_by_cities.slice()}
+            data={[liveStatsicStore]}
             renderItem={({ item, index }) => (
               <PlaceItemCard place={item} index={index} />
             )}
@@ -218,7 +272,7 @@ export const HomeScreen = observer(function HomeScreen(props: any) {
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+};
 
 const styles = StyleSheet.create({
   home_explore: {

@@ -22,45 +22,73 @@ import {
 import { Screen, ScreenBack } from '../../components';
 import moment from 'moment';
 import { useStores } from '../../models';
+import { activereservationApi } from '../active-reservation/activereservationApi';
 
 
 export const BookingStaffDetailsScreen = observer(
   function BookingStaffDetailsScreen(props) {
     const booking = props?.route?.params?.data;
-
+const[result,bookResult]=React.useState()
     const { staffTableSpendStore, bookingGuestStore } = useStores();
     const { bottle_table_spends, food_table_spends } = staffTableSpendStore;
     const { booking_guests } = bookingGuestStore;
 
     const [loading, setLoading] = React.useState<boolean>(false);
-    React.useEffect(() => {
-      async function fetchData() {
-        try {
-          setLoading(true);
+    React.useEffect(()=>{
+      getBookingDetails()
 
-          await staffTableSpendStore.getStaffTableSpends({
-            booking_id: booking.id,
-          });
-        } catch (e) {
-          console.warn(e);
-        } finally {
-          setLoading(false);
-        }
-      }
-      async function fetchGuests() {
-        try {
-          await bookingGuestStore.getBookingGuests(booking.id);
-        } catch (e) {
-          console.warn(e);
-        } finally {
-        }
-      }
+    },[])
+    const getBookingDetails=()=>{
+      const params={
+       _path:booking.id
+         }
 
-      fetchData().then();
-      fetchGuests().then();
+      activereservationApi.getBookingDetails(params, (res: any) => {
+        if (res) {
+          console.log("res",res)
+          bookResult(res)
 
-      return () => {};
-    }, []);
+
+        
+
+  }
+      setLoading(false);
+  
+    },(error:any)=>{
+     
+      setLoading(false); 
+  
+   
+    })
+  }
+    // React.useEffect(() => {
+    //   async function fetchData() {
+    //     try {
+    //       setLoading(true);
+
+    //       await staffTableSpendStore.getStaffTableSpends({
+    //         booking_id: booking.id,
+    //       });
+    //     } catch (e) {
+    //       console.warn(e);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   }
+    //   async function fetchGuests() {
+    //     try {
+    //       await bookingGuestStore.getBookingGuests(booking.id);
+    //     } catch (e) {
+    //       console.warn(e);
+    //     } finally {
+    //     }
+    //   }
+
+    //   fetchData().then();
+    //   fetchGuests().then();
+
+    //   return () => {};
+    // }, []);
 
     const renderTableDetail = ({ item, index }) => {
       return (

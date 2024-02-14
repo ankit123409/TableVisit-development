@@ -31,6 +31,7 @@ export const CityStoreModel = types
         getCitiesSearch: async (word) => {
             const api = new CityApi(self.environment.api)
             const result = await api.getCitiesSearch(word)
+            console.log("result",result)
             if (result.kind === "ok") {
                 self.saveCitiesSearch(result.cities_search)
             } else {

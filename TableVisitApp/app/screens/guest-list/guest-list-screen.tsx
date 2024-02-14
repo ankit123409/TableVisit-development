@@ -32,11 +32,13 @@ import { useStores } from '../../models';
 import { Controller, useForm } from 'react-hook-form';
 import { emailPattern } from '../../utils/app-helper';
 import Icon from 'react-native-paper/src/components/Icon';
+import { guestListApi } from './guestListApi';
 
-export const GuestListScreen = observer(function GuestListScreen() {
+export const GuestListScreen = (props:any)=> {
   const [loading, setLoading] = useState<boolean>(false);
   const [booking, setBooking] = useState<any>({});
   const [showDialog, setShowDialog] = useState<boolean>(false);
+  const[isEdit,showIsEdit]=useState(false)
 
   const [data, setData] = useState([]);
   const { bookingGuestStore } = useStores();
@@ -47,6 +49,7 @@ export const GuestListScreen = observer(function GuestListScreen() {
     handleSubmit,
     formState: { errors },
     setValue,
+    reset
   } = useForm({
     defaultValues: {
       id: 0,
@@ -56,28 +59,30 @@ export const GuestListScreen = observer(function GuestListScreen() {
   });
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-
-        const temp_booking = await load(SELECTED_BOOKING);
-
-        if (temp_booking) {
-          setBooking(temp_booking);
-          await loadGuests(temp_booking.id);
-        }
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData().then();
+    getGuestList(props?.route?.params?.booking)
   }, []);
 
+  const getGuestList=(id)=>{
+
+    const result=
+    {
+      booking_id:props?.route?.params?.booking
+    }
+  
+    guestListApi.getGuestList(result, (res: any) => {
+    if (res) {
+      setData(res)
+     
+  
+    }
+},(error:any)=>{
+  setLoading(false);
+})
+
+
+  }
+
   const add = async () => {
-    setLoading(true);
 
     try {
       setShowDialog(true);
@@ -90,7 +95,7 @@ export const GuestListScreen = observer(function GuestListScreen() {
 
   const edit = async (guest: any) => {
     setLoading(true);
-
+    showIsEdit(true)
     try {
       if (guest) {
         setValue('id', guest.id);
@@ -108,8 +113,94 @@ export const GuestListScreen = observer(function GuestListScreen() {
 
   const save = async (data) => {
     setShowDialog(false);
+    if(isEdit){
 
-    setLoading(true);
+      const result=
+    { email: data?.email,
+      name:data?.name,
+      booking_id:props?.route?.params?.booking,
+      guest_id:data?.id
+    }
+    console.log("result",result)
+    // console.log("")
+  
+    guestListApi.EditGuestList(result, (res: any) => {
+    if (res) {
+      reset({
+        id: 0,
+        name: '',
+        email: '',
+      });
+
+
+      console.log("res",res)
+
+    getGuestList(props?.route?.params?.booking)
+     
+  
+    }
+},(error:any)=>{
+  setLoading(false);
+})
+
+    }else{
+
+      const result=
+    { email: data?.email,
+      name:data?.name,
+      booking_id:props?.route?.params?.booking
+    }
+  
+    guestListApi.AddGuest(result, (res: any) => {
+    if (res) {
+      reset({
+        id: 0,
+        name: '',
+        email: '',
+      });
+
+
+      console.log("res",res)
+
+    getGuestList(props?.route?.params?.booking)
+     
+  
+    }
+},(error:any)=>{
+  setLoading(false);
+})
+
+    }
+
+    const result=
+    { email: data?.email,
+      name:data?.name,
+      booking_id:props?.route?.params?.booking
+    }
+  
+    guestListApi.AddGuest(result, (res: any) => {
+    if (res) {
+      reset({
+        id: 0,
+        name: '',
+        email: '',
+      });
+
+
+      console.log("res",res)
+
+    getGuestList(props?.route?.params?.booking)
+     
+  
+    }
+},(error:any)=>{
+  setLoading(false);
+})
+
+
+
+
+    return
 
     try {
       await bookingGuestStore.save({
@@ -140,30 +231,26 @@ export const GuestListScreen = observer(function GuestListScreen() {
   };
 
   const remove = async (id: number) => {
+    console.log("isisis",id)
     setLoading(true);
 
-    try {
-      await bookingGuestStore.remove(id);
-      await loadGuests(booking.id);
-    } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
+    const result=
+    { guest_id:id,
+      booking_id:props?.route?.params?.booking
     }
+  
+    guestListApi.DeleteGuestList(result, (res: any) => {
+    if (res) {
+    setLoading(false);
+    getGuestList(props?.route?.params?.booking)
+    }
+},(error:any)=>{
+  setLoading(false);
+})
+
+  
   };
 
-  const loadGuests = async (booking_id: number) => {
-    try {
-      await bookingGuestStore.getBookingGuests(booking_id);
-
-      if (booking_guests && booking_guests.length > 0)
-        setData(booking_guests.slice());
-      else setData([]);
-    } catch (e) {
-      console.warn(e);
-    } finally {
-    }
-  };
 
   const emptyComponent = () => {
     return (
@@ -382,7 +469,7 @@ export const GuestListScreen = observer(function GuestListScreen() {
       <DialogLoadingIndicator visible={loading} />
     </>
   );
-});
+};
 
 const styles = StyleSheet.create({
   venue_list_container: {

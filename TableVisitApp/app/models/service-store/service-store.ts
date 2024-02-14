@@ -36,6 +36,29 @@ export const ServiceStoreModel = types
         __DEV__ && console.tron.log(result.kind);
       }
     },
+    getFoodMenu: async (place_id: any) => {
+      const api = new ServiceApi(self.environment.api);
+      const result = await api.getFoodMenu(place_id);
+      if (result.kind === 'ok') {
+        return result
+       
+      } else {
+        __DEV__ && console.tron.log(result.kind);
+      }
+    },
+    getBottleMenu: async (place_id: any) => {
+      const api = new ServiceApi(self.environment.api);
+      const result = await api.getBottleMenu(place_id);
+      if (result.kind === 'ok') {
+        return result
+       
+      } else {
+        __DEV__ && console.tron.log(result.kind);
+      }
+    },
+
+
+
   }));
 
 type ServiceStoreType = Instance<typeof ServiceStoreModel>;

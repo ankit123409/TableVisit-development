@@ -50,10 +50,12 @@ import { useStores } from '../../models';
 import { ApplicationContext } from '../../navigator2/main-router';
 import jwt_decode from 'jwt-decode';
 import Icon from 'react-native-paper/src/components/Icon';
+import { signinApi } from './sign-api';
+import { push, reset } from '../../navigators/RootNavigation';
 
 // import messaging from '@react-native-firebase/messaging';
 
-export const SignInScreen = observer(function SignInScreen() {
+export const SignInScreen = ()=> {
   LogBox.ignoreLogs(['Setting a timer']);
 
   const api = new AuthApi();
@@ -128,7 +130,7 @@ export const SignInScreen = observer(function SignInScreen() {
   }, [TRUE]);
 
   const signInAction = async (data) => {
-    console.log("heloooo",data)
+  
     // await messaging()
     // .getToken()
     // .then((fcmToken) => {
@@ -150,15 +152,38 @@ export const SignInScreen = observer(function SignInScreen() {
       email: auth_data.email,
       password: auth_data.password,
     };
+    signinApi.Login(paylod, async (res: any) => {
+      if (res) {
+        onSignIn(res.token)
+        await save(USER_DATA, res.user);
+
+         RootNavigation.navigate('search_allow_location');
+         setLoading(false);   
+      }
+  },(error:any)=>{
+    setHasError(true);
+    setErrorMessage(error?.message)
+    setLoading(false);
+
+
+  })
+
+
+    return
     const auth_result = await api.getSignIn(auth_data);
-    console.log(auth_result);
-
+    console.log("calling",auth_result);
     if (auth_result.kind === 'ok' && auth_result.data) {
-      let auth_token =
-        auth_result.data.token_type + ' ' + auth_result.data.access_token;
-      onSignIn(auth_token);
 
-      const user_result = await api.getLoggedUser();
+      console.log("auth_result",auth_result)
+      onSignIn(auth_result.data.token)
+     
+
+      // let auth_token =
+        // auth_result.data.token_type + ' ' + auth_result.data.access_token;
+
+      // const user_result = await api.getLoggedUser();
+      const user_result = auth_result;
+
       // const user_result = {
       //   kind: 'ok',
       //   user: {
@@ -187,17 +212,19 @@ export const SignInScreen = observer(function SignInScreen() {
       //     otp_verify_status: 1,
       //   },
       // };
-      console.log('user_result', user_result);
-      if (user_result.kind === 'ok' && user_result.user) {
-        console.log('`dfsbvdjsbvjkdsbvjksbdvdjksabvjk`');
+      console.log('user_result', user_result.kind);
+      if (user_result.kind === 'ok' && user_result.data.user) {
+        console.log('dfsbvdjsbvjkdsbvjksbdvdjksabvjk');
+        await save(USER_DATA, user_result.data.user);
 
-        await save(USER_DATA, user_result.user);
+        subscribePayment('payment.channel.' + user_result.data?.user.id);
+        if (user_result.data.user.id !== UserTypeEnum.Customer) {
 
-        subscribePayment('payment.channel.' + user_result.user.id);
-
-        if (user_result.user.user_type_id === UserTypeEnum.Customer) {
+        // if (user_result.user.user_type_id !== UserTypeEnum.Customer) {
           if (await load(USER_LOCATION)) RootNavigation.navigate('init');
+          // else RootNavigation.navigate('search_allow_location');
           else RootNavigation.navigate('search_allow_location');
+
         } else showError();
       } else {
         if (user_result.kind == 'not-found') {
@@ -497,6 +524,7 @@ export const SignInScreen = observer(function SignInScreen() {
               dark={true}
               buttonColor={AppColors.LOGO_COLOR}
               onPress={handleSubmit(signInAction)}
+
               style={[
                 AppStyles.button,
                 {
@@ -595,7 +623,7 @@ export const SignInScreen = observer(function SignInScreen() {
       </Snackbar>
     </>
   );
-});
+}
 
 const styles = StyleSheet.create({
   main_view_style: {

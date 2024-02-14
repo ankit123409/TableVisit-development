@@ -33,13 +33,23 @@ export const AuthStoreModel = types
       return result;
     },
     getSignUp: async (user) => {
-      console.log('user', user);
       const api = new AuthApi();
       const result = await api.getSignUp(user);
 
-      console.log('result.......', result);
       if (result && result.kind === 'ok') {
-        return result.result;
+        return result;
+      } else {
+        __DEV__ && console.log(result.kind);
+        return null;
+      }
+    },
+
+    getResendOtp: async () => {
+      const api = new AuthApi();
+      const result = await api.getOtp();
+
+      if (result && result.kind === 'ok') {
+        return result;
       } else {
         __DEV__ && console.log(result.kind);
         return null;

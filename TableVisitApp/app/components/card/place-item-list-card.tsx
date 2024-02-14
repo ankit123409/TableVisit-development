@@ -32,15 +32,20 @@ export const PlaceItemListCard = ({
 }) => {
   const { favoriteStore } = useStores();
   const [favorite, setFavorite] = useState<boolean>(place.is_favorite);
-
+console.log("propsssss",place)
   return (
     // heart
     <TouchableOpacity
       onPress={async () => {
         await save(SELECTED_PLACE, place);
         console.log('place...', place.name);
+        // RootNavigation.navigate('detail', {
+        //   placeName: place.name,
+        // });
+
         RootNavigation.navigate('detail', {
           placeName: place.name,
+          id:place?.id || 100
         });
       }}
     >
@@ -52,7 +57,7 @@ export const PlaceItemListCard = ({
       >
         <View style={styles.header_card_style}>
           <Paragraph numberOfLines={1} style={[styles.venue_open_hours]}>
-            {'Open from ' + place.open_at + ' to ' + place.close_at}
+            {'Open from ' + place.open_from + ' to ' + place.closed_at}
           </Paragraph>
           <View style={AppStyles.venue_list_row}>
             <TouchableOpacity
@@ -126,7 +131,8 @@ export const PlaceItemListCard = ({
         }}>
           <View style={{ position: 'relative' }}>
             <RNImage
-              source={{ uri: place.image }}
+              source={{ uri: place.image   || place.image_path
+              }}
               style={styles.venue_list_pic}
             />
 
@@ -155,20 +161,22 @@ export const PlaceItemListCard = ({
                   { color: AppColors.BLACK },
                 ]}
               >
-                {place.place_rating_avg}
+                {place.venue_ratings?.reduce((elem ,temp)=>elem+temp,0)/place?.venue_ratings.length}
               </Paragraph>
             </View>
           </View>
           <View style={styles.column_wrap}>
             <Paragraph numberOfLines={1} style={AppStyles.venue_list_type}>
-              {place.place_type_name}
+              {place.place_type_name  || "Nightclub"
+              
+              }
             </Paragraph>
             <Paragraph numberOfLines={1} style={AppStyles.venue_card_name}>
               {place.name}
             </Paragraph>
             <View style={AppStyles.row_wrap}>
               <Paragraph numberOfLines={1} style={AppStyles.venue_card_rating}>
-                {place.place_rating_count + ' reviews'}
+                {place.place_rating_count || "2" + ' reviews'}
               </Paragraph>
             </View>
           </View>

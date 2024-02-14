@@ -4,6 +4,7 @@ import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors, AppStyles, scale, verticalScale } from '../../theme';
 
 export const PlaceDetailCard = ({ place, date }: { place: any; date: any }) => {
+  console.log("place",place)
   return (
     <View
       style={[
@@ -13,7 +14,7 @@ export const PlaceDetailCard = ({ place, date }: { place: any; date: any }) => {
     >
       <View style={styles.header_card_style}>
         <Paragraph numberOfLines={1} style={[styles.venue_open_hours]}>
-          {'Open from ' + place.open_at + ' to ' + place.close_at}
+          {'Open from ' + place.open_from + ' to ' + place.closed_at}
         </Paragraph>
         <View style={AppStyles.venue_list_row}>
           <TouchableOpacity onPress={async () => {}}>
@@ -71,8 +72,10 @@ export const PlaceDetailCard = ({ place, date }: { place: any; date: any }) => {
             <Paragraph
               numberOfLines={1}
               style={[AppStyles.venue_card_rating, { color: AppColors.BLACK }]}
-            >
-              {place.place_rating_avg}
+            >{"4"}
+
+
+              {/* {place?.venue_ratings?.reduce((accumulator, elm) => accumulator + elm, 0)/place?.place?.venue_ratings.length} */}
             </Paragraph>
           </View>
         </View>

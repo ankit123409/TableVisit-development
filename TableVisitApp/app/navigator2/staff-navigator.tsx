@@ -36,21 +36,23 @@ const Stack = createNativeStackNavigator<StaffParamList>();
 export function StaffNavigator() {
   const [user, setUser] = useState(null);
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user = await load(USER_DATA);
 
-        setUser(user);
-      } catch (e) {}
-    };
+    console.log("sdjbjbdjb")
+    // const fetchData = async () => {
+    //   try {
+    //     const user = await load(USER_DATA);
 
-    fetchData().then();
+    //     setUser(user);
+    //   } catch (e) {}
+    // };
+
+    // fetchData().then();
   }, []);
 
-  console.log("user?.user_type_id", user?.user_type_id)
+  console.log("user?.user_type_id", user?.staff_type)
   return (
     <Stack.Navigator
-      initialRouteName="loading"
+      // initialRouteName="StaffHomeScreen"
       screenOptions={(props) => ({
         headerStyle: {
           backgroundColor: AppColors.BG,
@@ -99,6 +101,11 @@ export function StaffNavigator() {
         name="staff_table_spends"
         component={StaffTableSpendsScreen}
       /> */}
+       <Stack.Screen
+          name="staffbottomNav"
+          component={StaffBottomNavigator}
+          options={{ headerShown: false, headerTitleAlign: 'center' }}
+        />
       <Stack.Screen
         options={verticalAnimation as any}
         name="chat"
@@ -111,7 +118,8 @@ export function StaffNavigator() {
         name="loading"
         component={LoadingScreen}
       />
-      {user?.user_type_id === 8 ? (
+        
+      {/* {user?.user_type_id === 8 ? (
         <Stack.Screen
           name="staffbottomNav"
           component={HookahBottomNavigator}
@@ -135,7 +143,7 @@ export function StaffNavigator() {
           component={StaffBottomNavigator}
           options={{ headerShown: false, headerTitleAlign: 'center' }}
         />
-      ) : user?.user_type_id === 11 ? (
+      ) : user?.staff_type === 2 ? (
         <Stack.Screen
           name="staffbottomNav"
           component={ManagerBottomNavigator}
@@ -147,7 +155,7 @@ export function StaffNavigator() {
           component={StaffBottomNavigator}
           options={{ headerShown: false, headerTitleAlign: 'center' }}
         />
-      )}
+      )} */}
       <Stack.Screen
         name="booking_staff_details"
         component={BookingStaffDetailsScreen}

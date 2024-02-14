@@ -27,6 +27,7 @@ import Icon from "react-native-paper/src/components/Icon";
 import { RootNavigation } from "../../navigators";
 import { useStores } from "../../models";
 import { useFocusEffect } from "@react-navigation/core";
+import { BookingStaffApi } from "./BookingStaffApi";
 
 export const BookingStaffScreen = observer(function BookingStaffScreen(props) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,23 +55,67 @@ export const BookingStaffScreen = observer(function BookingStaffScreen(props) {
     try {
       setLoading(true);
       if (index === 0) {
-        const result = await staffBookingStore.getStaffBookingsAssigned(
-          searchText
-        );
+        console.log("heloooo")
 
-        if (result.kind === "unauthorized") {
-          RootNavigation.navigate("sign_out");
-        }
-        setBookings(result.assigned_bookings);
-        setAssigned(true);
+        
+      
+        BookingStaffApi.getAcceptedRequest (null, (res: any) => {
+          if (res) {
+            console.log("rseseses",)
+            setBookings(res);
+            setAssigned(true);
+            setLoading(false);
+      
+      }
+           
+      
+      
+          
         setLoading(false);
+      
+      },(error:any)=>{
+       
+        setLoading(false);
+      
+      
+      })
+        // const result = await staffBookingStore.getStaffBookingsAssigned(
+        //   searchText
+        // );
+
+        // if (result.kind === "unauthorized") {
+        //   RootNavigation.navigate("sign_out");
+        // }
+       
       } else {
-        const result = await staffBookingStore.getStaffBookingsInbox(
-          searchText
-        );
-        if (result.kind === "unauthorized") {
-          RootNavigation.navigate("sign_out");
-        }
+
+        BookingStaffApi.getRequestList (null, (res: any) => {
+          if (res) {
+            setBookings(res);
+        setAssigned(false);
+        setLoading(false);
+         
+      
+      }
+           
+      
+      
+          
+        setLoading(false);
+      
+      },(error:any)=>{
+       
+        setLoading(false);
+      
+      
+      })
+
+        // const result = await staffBookingStore.getStaffBookingsInbox(
+        //   searchText
+        // );
+        // if (result.kind === "unauthorized") {
+        //   RootNavigation.navigate("sign_out");
+        // }
         setBookings(result.inbox_bookings);
         setAssigned(false);
         setLoading(false);
